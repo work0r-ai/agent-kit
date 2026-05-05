@@ -2,7 +2,7 @@
 
 All notable changes to `@workorai/agent-kit` are documented here.
 
-## 0.2.0 - Unreleased
+## 0.2.0 - 2026-05-05
 
 - Renames the canonical skill from `workorai-find-job` to `workorai` to support both candidate and employer workflows.
 - Moves the canonical skill into `skills/workorai` so GitHub and skill registries can ingest it directly.
