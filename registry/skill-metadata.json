@@ -1,0 +1,27 @@
+{
+  "name": "workorai",
+  "displayName": "WorkorAI",
+  "version": "0.2.0",
+  "description": "Use WorkorAI talent marketplace MCP tools for candidate job matching and future employer hiring workflows.",
+  "license": "MIT",
+  "repository": "https://github.com/workorai/agent-kit",
+  "skillPath": "skills/workorai",
+  "npmPackage": "@workorai/agent-kit",
+  "categories": [
+    "job-search",
+    "recruiting",
+    "talent-marketplace",
+    "mcp",
+    "productivity"
+  ],
+  "supports": [
+    "codex",
+    "claude-code",
+    "opencode",
+    "openclaw-compatible",
+    "generic-agent-skills"
+  ],
+  "externalServices": [
+    "https://workorai.com/mcp"
+  ]
+}

@@ -1,0 +1,8 @@
+interface:
+  display_name: "WorkorAI"
+  short_description: "Use WorkorAI talent marketplace MCP tools for candidate and employer workflows"
+  brand_color: "#0F766E"
+  default_prompt: "Use WorkorAI MCP. If I am a candidate, find matched jobs or guide me through candidate onboarding and MCP key setup. If I am an employer, help with available WorkorAI hiring workflows and explain when employer MCP tools are not yet available."
+
+policy:
+  allow_implicit_invocation: true

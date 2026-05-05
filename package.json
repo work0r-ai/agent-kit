@@ -1,0 +1,60 @@
+{
+  "name": "@workorai/agent-kit",
+  "version": "0.2.0",
+  "description": "Universal WorkorAI talent marketplace Agent Skill and MCP installer for Codex, Claude Code, OpenCode, OpenClaw-compatible clients, and skill registries.",
+  "type": "module",
+  "bin": {
+    "workorai-agent": "bin/workorai-agent.mjs"
+  },
+  "directories": {
+    "bin": "bin"
+  },
+  "scripts": {
+    "validate": "node scripts/validate.mjs",
+    "smoke": "node scripts/smoke-install.mjs",
+    "prepack": "node scripts/validate.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/workorai/agent-kit.git"
+  },
+  "homepage": "https://github.com/workorai/agent-kit#readme",
+  "bugs": {
+    "url": "https://github.com/workorai/agent-kit/issues"
+  },
+  "keywords": [
+    "agent-skills",
+    "ai-skills",
+    "codex-skills",
+    "claude-code-skills",
+    "opencode-skills",
+    "cursor-skills",
+    "windsurf-skills",
+    "mcp",
+    "model-context-protocol",
+    "workorai",
+    "job-search",
+    "candidate-matching",
+    "talent-marketplace",
+    "recruiting",
+    "web3-jobs",
+    "agent-installer"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "bin",
+    "skills",
+    "registry",
+    "scripts",
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
