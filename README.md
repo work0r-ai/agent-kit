@@ -34,7 +34,7 @@ npx @workorai/agent-kit install --endpoint http://127.0.0.1:3001/mcp
 After install, restart the agent client and ask:
 
 ```text
-найди мне работу
+find me a job
 ```
 
 ## What Is Included
