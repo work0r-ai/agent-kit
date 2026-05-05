@@ -36,6 +36,10 @@ skills/workorai
 - OpenAI/Codex skill catalogs: submit `skills/workorai`, including `agents/openai.yaml`.
 - Claude Code/Agent Skills catalogs: submit the same `skills/workorai` folder.
 - OpenCode skill directories: submit the same `skills/workorai` folder.
+- Cursor-compatible directories: submit the GitHub repository URL and canonical skill path.
+- Qwen Code-compatible directories: submit the GitHub repository URL and canonical skill path.
+- Antigravity-compatible directories: submit the GitHub repository URL and canonical skill path.
+- Deep Code / DeepSeek-compatible directories: submit the GitHub repository URL and canonical skill path.
 - skills.re: submit the GitHub repository URL; the registry expects a root `skills/` folder.
 - Cursor/Windsurf-compatible skill directories: submit the GitHub repository URL and canonical skill path when they support the common `SKILL.md` folder convention.
 - Any OpenClaw-compatible marketplace: submit the GitHub repository URL and canonical skill path.
@@ -64,5 +68,5 @@ Confirm:
 Use this text when a hub asks for a longer description:
 
 ```text
-WorkorAI is an Agent Skill for talent marketplace workflows through WorkorAI MCP. It lets candidates ask natural job-search prompts such as "найди мне работу" or "find me a job", then guides compatible agents to use WorkorAI candidate tools, profile onboarding, MCP key setup, and safe local credential storage. The skill name is role-neutral so employer hiring workflows can be added as WorkorAI exposes employer MCP tools. The repository also includes a zero-dependency npm installer for Codex, Claude Code, OpenCode, OpenClaw-compatible clients, and generic Agent Skills runtimes.
+WorkorAI is an Agent Skill for talent marketplace workflows through WorkorAI MCP. It lets candidates ask natural job-search prompts such as "найди мне работу" or "find me a job", then guides compatible agents to use WorkorAI candidate tools, profile onboarding, MCP key setup, and safe local credential storage. The skill name is role-neutral so employer hiring workflows can be added as WorkorAI exposes employer MCP tools. The repository also includes a zero-dependency npm installer for Codex, Claude Code, OpenCode, Cursor, Qwen Code, Antigravity, Deep Code, OpenClaw-compatible clients, and generic Agent Skills runtimes.
 ```

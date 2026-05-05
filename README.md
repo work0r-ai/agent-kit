@@ -22,7 +22,11 @@ Install for one client:
 npx @workorai/agent-kit install --agent codex
 npx @workorai/agent-kit install --agent claude
 npx @workorai/agent-kit install --agent opencode
+npx @workorai/agent-kit install --agent cursor
 npx @workorai/agent-kit install --agent openclaw
+npx @workorai/agent-kit install --agent qwen
+npx @workorai/agent-kit install --agent antigravity
+npx @workorai/agent-kit install --agent deepcode
 ```
 
 Use a local development MCP endpoint:
@@ -52,7 +56,11 @@ find me a job
 | `codex` | `~/.codex/skills/workorai` | `~/.codex/config.toml` |
 | `claude` | `~/.claude/skills/workorai` | `~/.claude.json` |
 | `opencode` | `~/.config/opencode/skills/workorai` | `~/.config/opencode/config.json` |
+| `cursor` | `~/.cursor/skills/workorai` | Use WorkorAI MCP config supported by your Cursor setup |
 | `openclaw` | `~/.agents/skills/workorai` | `~/.agents/mcp.json` |
+| `qwen` | `~/.qwen/skills/workorai` | Configure MCP according to your Qwen Code setup |
+| `antigravity` | `~/.gemini/antigravity/skills/workorai` | Configure MCP according to your Antigravity setup |
+| `deepcode` | `~/.agents/skills/workorai` | `~/.agents/mcp.json` |
 | `generic` | `~/.agents/skills/workorai` | `~/.agents/mcp.json` |
 
 The default `install` command installs a canonical copy at `~/.agents/skills/workorai` and links or copies compatible client locations.
@@ -105,6 +113,10 @@ This repository is structured for direct ingestion by major skill surfaces:
 - **Codex/OpenAI-style skills**: canonical folder at `skills/workorai` plus `agents/openai.yaml`.
 - **Claude Code**: standard `SKILL.md` folder installable into `.claude/skills/` or `~/.claude/skills/`.
 - **OpenCode**: standard `SKILL.md` folder installable into `.opencode/skills/`, `~/.config/opencode/skills/`, or Claude-compatible locations.
+- **Cursor**: standard `SKILL.md` folder installable into `.cursor/skills/` or `~/.cursor/skills/`.
+- **Qwen Code**: standard `SKILL.md` folder installable into `.qwen/skills/` or `~/.qwen/skills/`.
+- **Antigravity / Gemini Antigravity**: standard `SKILL.md` folder installable into `~/.gemini/antigravity/skills/`.
+- **Deep Code / DeepSeek**: standard `SKILL.md` folder installable into `.deepcode/skills/` or the shared `~/.agents/skills/`.
 - **skills.re and similar registries**: root `skills/` folder with at least one skill directory.
 - **Cursor/Windsurf-compatible hubs**: canonical `SKILL.md` folder plus generic MCP config notes in `registry/`.
 

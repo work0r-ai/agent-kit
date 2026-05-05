@@ -13,6 +13,9 @@ const expectedSkill = join(tempRoot, '.agents', 'skills', 'workorai');
 const expectedCodexSkill = join(tempRoot, '.codex', 'skills', 'workorai');
 const expectedClaudeSkill = join(tempRoot, '.claude', 'skills', 'workorai');
 const expectedOpenCodeSkill = join(tempRoot, '.config', 'opencode', 'skills', 'workorai');
+const expectedCursorSkill = join(tempRoot, '.cursor', 'skills', 'workorai');
+const expectedQwenSkill = join(tempRoot, '.qwen', 'skills', 'workorai');
+const expectedAntigravitySkill = join(tempRoot, '.gemini', 'antigravity', 'skills', 'workorai');
 
 const assertExists = (path) => {
   if (!existsSync(path)) {
@@ -66,6 +69,9 @@ try {
   assertSymlink(expectedCodexSkill);
   assertSymlink(expectedClaudeSkill);
   assertSymlink(expectedOpenCodeSkill);
+  assertSymlink(expectedCursorSkill);
+  assertSymlink(expectedQwenSkill);
+  assertSymlink(expectedAntigravitySkill);
   assertFileIncludes(join(tempRoot, '.codex', 'config.toml'), '[mcp_servers.workorai]');
   assertFileIncludes(join(tempRoot, '.claude.json'), '"workorai"');
   assertFileIncludes(join(tempRoot, '.config', 'opencode', 'config.json'), '"workorai"');

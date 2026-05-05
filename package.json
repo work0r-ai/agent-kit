@@ -1,7 +1,7 @@
 {
   "name": "@workorai/agent-kit",
-  "version": "0.2.0",
-  "description": "Universal WorkorAI talent marketplace Agent Skill and MCP installer for Codex, Claude Code, OpenCode, OpenClaw-compatible clients, and skill registries.",
+  "version": "0.2.1",
+  "description": "Universal WorkorAI talent marketplace Agent Skill and MCP installer for Codex, Claude Code, OpenCode, Cursor, Qwen Code, Antigravity, Deep Code, and skill registries.",
   "type": "module",
   "bin": {
     "workorai-agent": "bin/workorai-agent.mjs"
@@ -30,6 +30,10 @@
     "opencode-skills",
     "cursor-skills",
     "windsurf-skills",
+    "qwen-code-skills",
+    "antigravity-skills",
+    "deepcode-skills",
+    "deepseek",
     "mcp",
     "model-context-protocol",
     "workorai",

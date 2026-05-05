@@ -138,7 +138,11 @@ const repoFilesToScan = [
   'registry/submission-checklist.md',
   'registry/openai-codex.md',
   'registry/claude-code.md',
+  'registry/cursor.md',
   'registry/opencode.md',
+  'registry/qwen-code.md',
+  'registry/antigravity.md',
+  'registry/deepcode.md',
   'registry/cursor-windsurf-compatible.md',
   'registry/skill-metadata.json',
 ];

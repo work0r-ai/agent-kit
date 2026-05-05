@@ -12,6 +12,7 @@ This repository packages the WorkorAI job-search Agent Skill for public distribu
 - `skills/workorai/LICENSE.txt` is the per-skill license for registries that inspect skill folders directly.
 - `bin/workorai-agent.mjs` installs the skill and writes MCP config for supported local agent clients.
 - `registry/` contains human-facing submission notes for external skill hubs.
+- Supported explicit install targets include Codex, Claude Code, OpenCode, Cursor, OpenClaw-compatible clients, Qwen Code, Antigravity, Deep Code, and generic `.agents` hosts.
 
 ## Maintenance Rules
 

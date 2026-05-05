@@ -21,7 +21,7 @@ Submit after the GitHub repository and npm `0.2.0` release are public.
 ## Suggested Listing Copy
 
 ```text
-WorkorAI - Talent marketplace Agent Skill for WorkorAI MCP. Supports candidate job matching today and is structured for employer hiring workflows as WorkorAI exposes employer MCP tools. Includes a zero-dependency npm installer for Codex, Claude Code, OpenCode, OpenClaw-compatible clients, and generic Agent Skills runtimes.
+WorkorAI - Talent marketplace Agent Skill for WorkorAI MCP. Supports candidate job matching today and is structured for employer hiring workflows as WorkorAI exposes employer MCP tools. Includes a zero-dependency npm installer for Codex, Claude Code, OpenCode, Cursor, Qwen Code, Antigravity, Deep Code, OpenClaw-compatible clients, and generic Agent Skills runtimes.
 ```
 
 ## Canonical Links
@@ -30,4 +30,3 @@ WorkorAI - Talent marketplace Agent Skill for WorkorAI MCP. Supports candidate j
 - Skill path: `skills/workorai`
 - npm: `@workorai/agent-kit`
 - Install: `npx @workorai/agent-kit install`
-

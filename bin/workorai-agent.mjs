@@ -22,15 +22,26 @@ const CREDENTIAL_HELPER = join(TEMPLATE_ROOT, 'scripts', 'credential-store.mjs')
 const SKILL_NAME = 'workorai';
 const MCP_NAME = 'workorai';
 const DEFAULT_ENDPOINT = process.env.WORKORAI_MCP_ENDPOINT || 'https://workorai.com/mcp';
-const SUPPORTED_AGENTS = new Set(['codex', 'claude', 'opencode', 'openclaw', 'generic', 'all']);
+const SUPPORTED_AGENTS = new Set([
+  'codex',
+  'claude',
+  'opencode',
+  'cursor',
+  'openclaw',
+  'qwen',
+  'antigravity',
+  'deepcode',
+  'generic',
+  'all',
+]);
 
 const usage = () => {
   console.log(`WorkorAI Agent Kit
 
 Usage:
   workorai-agent install [options]
-  workorai-agent configure --agent <codex|claude|opencode|openclaw|generic|all> [--endpoint URL]
-  workorai-agent print-config --agent <codex|claude|opencode|openclaw|generic> [--endpoint URL]
+  workorai-agent configure --agent <codex|claude|opencode|cursor|openclaw|qwen|antigravity|deepcode|generic|all> [--endpoint URL]
+  workorai-agent print-config --agent <codex|claude|opencode|cursor|openclaw|qwen|antigravity|deepcode|generic> [--endpoint URL]
   workorai-agent credential <get|save|delete> [--shared-file]
   workorai-agent doctor [--agent AGENT] [--endpoint URL]
 
@@ -46,7 +57,10 @@ Options:
 Examples:
   npx @workorai/agent-kit install
   npx @workorai/agent-kit install --endpoint http://127.0.0.1:3001/mcp
+  npx @workorai/agent-kit install --agent cursor
   npx @workorai/agent-kit install --agent openclaw
+  npx @workorai/agent-kit install --agent qwen
+  npx @workorai/agent-kit install --agent antigravity
   npx @workorai/agent-kit print-config --agent codex
   npx @workorai/agent-kit credential save --best-effort`);
 };
@@ -128,6 +142,18 @@ const userSkillDirForAgent = (agent) => {
     return join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'opencode', 'skills', SKILL_NAME);
   }
 
+  if (agent === 'cursor') {
+    return join(homedir(), '.cursor', 'skills', SKILL_NAME);
+  }
+
+  if (agent === 'qwen') {
+    return join(homedir(), '.qwen', 'skills', SKILL_NAME);
+  }
+
+  if (agent === 'antigravity') {
+    return join(homedir(), '.gemini', 'antigravity', 'skills', SKILL_NAME);
+  }
+
   return join(homedir(), '.agents', 'skills', SKILL_NAME);
 };
 
@@ -142,6 +168,18 @@ const projectSkillDirForAgent = (agent, projectDir) => {
     return join(projectDir, '.opencode', 'skills', SKILL_NAME);
   }
 
+  if (agent === 'cursor') {
+    return join(projectDir, '.cursor', 'skills', SKILL_NAME);
+  }
+
+  if (agent === 'qwen') {
+    return join(projectDir, '.qwen', 'skills', SKILL_NAME);
+  }
+
+  if (agent === 'deepcode') {
+    return join(projectDir, '.deepcode', 'skills', SKILL_NAME);
+  }
+
   return join(projectDir, '.agents', 'skills', SKILL_NAME);
 };
 
@@ -152,7 +190,17 @@ const expandAgents = (agent) => {
     return [agent];
   }
 
-  return ['codex', 'claude', 'opencode', 'openclaw', 'generic'];
+  return [
+    'codex',
+    'claude',
+    'opencode',
+    'cursor',
+    'openclaw',
+    'qwen',
+    'antigravity',
+    'deepcode',
+    'generic',
+  ];
 };
 
 const resolveInstallTargets = (options) => {
@@ -436,6 +484,9 @@ const configureGeneric = (agent, endpoint, dryRun) => {
   console.log(`${dryRun ? '[dry-run] ' : ''}Configured ${agent} MCP at ${configPath}`);
 };
 
+const shouldUseGenericMcpConfig = (agentName) =>
+  ['openclaw', 'deepcode', 'generic'].includes(agentName);
+
 const handleConfigure = (options) => {
   const agent = options.agent || 'all';
   const endpoint = options.endpoint || DEFAULT_ENDPOINT;
@@ -460,8 +511,11 @@ const handleConfigure = (options) => {
       continue;
     }
 
-    const genericPath = join(homedir(), '.agents', 'mcp.json');
+    if (!shouldUseGenericMcpConfig(agentName)) {
+      continue;
+    }
 
+    const genericPath = join(homedir(), '.agents', 'mcp.json');
     if (configuredPaths.has(genericPath)) {
       continue;
     }
