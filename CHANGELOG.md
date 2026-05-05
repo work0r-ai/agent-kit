@@ -2,7 +2,7 @@
 
 All notable changes to `@workorai/agent-kit` are documented here.
 
-## 0.2.1 - Unreleased
+## 0.2.1 - 2026-05-05
 
 - Adds explicit install targets for Cursor, Qwen Code, Antigravity, and Deep Code / DeepSeek workflows.
 - Adds registry notes for Cursor, Qwen Code, Antigravity, and Deep Code.
