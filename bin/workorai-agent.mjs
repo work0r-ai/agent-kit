@@ -35,6 +35,9 @@ const SUPPORTED_AGENTS = new Set([
   'all',
 ]);
 
+const userHome = () => process.env.WORKORAI_AGENT_HOME || homedir();
+const configHome = () => process.env.XDG_CONFIG_HOME || join(userHome(), '.config');
+
 const usage = () => {
   console.log(`WorkorAI Agent Kit
 
@@ -109,11 +112,11 @@ const parseArgs = (argv) => {
 
 const expandHome = (pathValue) => {
   if (pathValue === '~') {
-    return homedir();
+    return userHome();
   }
 
   if (pathValue.startsWith('~/')) {
-    return join(homedir(), pathValue.slice(2));
+    return join(userHome(), pathValue.slice(2));
   }
 
   return pathValue;
@@ -131,33 +134,33 @@ const ensureAgent = (agent, allowAll = false) => {
 
 const userSkillDirForAgent = (agent) => {
   if (agent === 'codex') {
-    return join(homedir(), '.codex', 'skills', SKILL_NAME);
+    return join(userHome(), '.codex', 'skills', SKILL_NAME);
   }
 
   if (agent === 'claude') {
-    return join(homedir(), '.claude', 'skills', SKILL_NAME);
+    return join(userHome(), '.claude', 'skills', SKILL_NAME);
   }
 
   if (agent === 'opencode') {
-    return join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'opencode', 'skills', SKILL_NAME);
+    return join(configHome(), 'opencode', 'skills', SKILL_NAME);
   }
 
   if (agent === 'cursor') {
-    return join(homedir(), '.cursor', 'skills', SKILL_NAME);
+    return join(userHome(), '.cursor', 'skills', SKILL_NAME);
   }
 
   if (agent === 'qwen') {
-    return join(homedir(), '.qwen', 'skills', SKILL_NAME);
+    return join(userHome(), '.qwen', 'skills', SKILL_NAME);
   }
 
   if (agent === 'antigravity') {
-    return join(homedir(), '.gemini', 'antigravity', 'skills', SKILL_NAME);
+    return join(userHome(), '.gemini', 'antigravity', 'skills', SKILL_NAME);
   }
 
-  return join(homedir(), '.agents', 'skills', SKILL_NAME);
+  return join(userHome(), '.agents', 'skills', SKILL_NAME);
 };
 
-const canonicalUserSkillDir = () => join(homedir(), '.agents', 'skills', SKILL_NAME);
+const canonicalUserSkillDir = () => join(userHome(), '.agents', 'skills', SKILL_NAME);
 
 const projectSkillDirForAgent = (agent, projectDir) => {
   if (agent === 'claude') {
@@ -366,7 +369,7 @@ const handleInstall = (options) => {
 
   console.log('');
   console.log(`Universal skill: ${plan.canonical.dir}`);
-  console.log(`Shared credential store: ${join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'workorai', 'mcp-token')}`);
+  console.log(`Shared credential store: ${join(configHome(), 'workorai', 'mcp-token')}`);
 };
 
 const writeTextFile = (filePath, content, dryRun) => {
@@ -419,7 +422,7 @@ const upsertTomlSection = (filePath, sectionName, body, dryRun) => {
 };
 
 const configureCodex = (endpoint, dryRun) => {
-  const configPath = join(homedir(), '.codex', 'config.toml');
+  const configPath = join(userHome(), '.codex', 'config.toml');
 
   upsertTomlSection(
     configPath,
@@ -434,7 +437,7 @@ tool_timeout_sec = 120.0`,
 };
 
 const configureClaude = (endpoint, dryRun) => {
-  const configPath = join(homedir(), '.claude.json');
+  const configPath = join(userHome(), '.claude.json');
   const config = readJsonFile(configPath);
 
   config.mcpServers = {
@@ -450,7 +453,7 @@ const configureClaude = (endpoint, dryRun) => {
 };
 
 const configureOpenCode = (endpoint, dryRun) => {
-  const configPath = join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'opencode', 'config.json');
+  const configPath = join(configHome(), 'opencode', 'config.json');
   const config = readJsonFile(configPath);
 
   config.mcp = {
@@ -469,7 +472,7 @@ const configureOpenCode = (endpoint, dryRun) => {
 };
 
 const configureGeneric = (agent, endpoint, dryRun) => {
-  const configPath = join(homedir(), '.agents', 'mcp.json');
+  const configPath = join(userHome(), '.agents', 'mcp.json');
   const config = readJsonFile(configPath);
 
   config.mcpServers = {
@@ -515,7 +518,7 @@ const handleConfigure = (options) => {
       continue;
     }
 
-    const genericPath = join(homedir(), '.agents', 'mcp.json');
+    const genericPath = join(userHome(), '.agents', 'mcp.json');
     if (configuredPaths.has(genericPath)) {
       continue;
     }

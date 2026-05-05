@@ -35,6 +35,12 @@ Use a local development MCP endpoint:
 npx @workorai/agent-kit install --endpoint http://127.0.0.1:3001/mcp
 ```
 
+For isolated installer tests, set `WORKORAI_AGENT_HOME` to a temporary directory:
+
+```bash
+WORKORAI_AGENT_HOME=/tmp/workorai-agent-home npx @workorai/agent-kit install
+```
+
 After install, restart the agent client and ask:
 
 ```text

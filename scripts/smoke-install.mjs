@@ -62,6 +62,7 @@ try {
     env: {
       ...process.env,
       HOME: tempRoot,
+      WORKORAI_AGENT_HOME: tempRoot,
       XDG_CONFIG_HOME: join(tempRoot, '.config'),
     },
   });
@@ -80,6 +81,7 @@ try {
     env: {
       ...process.env,
       HOME: tempRoot,
+      WORKORAI_AGENT_HOME: tempRoot,
       XDG_CONFIG_HOME: join(tempRoot, '.config'),
     },
   });

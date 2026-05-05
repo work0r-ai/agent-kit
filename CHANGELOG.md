@@ -7,6 +7,7 @@ All notable changes to `@workorai/agent-kit` are documented here.
 - Adds explicit install targets for Cursor, Qwen Code, Antigravity, and Deep Code / DeepSeek workflows.
 - Adds registry notes for Cursor, Qwen Code, Antigravity, and Deep Code.
 - Extends smoke tests to verify Cursor, Qwen Code, and Antigravity skill links.
+- Adds `WORKORAI_AGENT_HOME` for isolated installer smoke tests without touching the real user home.
 
 ## 0.2.0 - 2026-05-05
 
