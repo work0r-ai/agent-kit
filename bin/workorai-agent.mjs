@@ -45,7 +45,7 @@ Usage:
   workorai-agent install [options]
   workorai-agent configure --agent <codex|claude|opencode|cursor|openclaw|qwen|antigravity|deepcode|generic|all> [--endpoint URL]
   workorai-agent print-config --agent <codex|claude|opencode|cursor|openclaw|qwen|antigravity|deepcode|generic> [--endpoint URL]
-  workorai-agent credential <get|save|delete> [--shared-file]
+  workorai-agent credential <get|save|delete> [--role=candidate|employer] [--shared-file|--best-effort]
   workorai-agent doctor [--agent AGENT] [--endpoint URL]
 
 Options:
@@ -65,7 +65,9 @@ Examples:
   npx @workorai/agent-kit install --agent qwen
   npx @workorai/agent-kit install --agent antigravity
   npx @workorai/agent-kit print-config --agent codex
-  npx @workorai/agent-kit credential save --best-effort`);
+  npx @workorai/agent-kit credential save --best-effort
+  npx @workorai/agent-kit credential save --best-effort --role=employer
+  npx @workorai/agent-kit credential get --role=employer`);
 };
 
 const fail = (message) => {
