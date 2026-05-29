@@ -6,7 +6,12 @@
 
 WorkorAI Agent Kit packages the `workorai` Agent Skill and a zero-dependency installer for WorkorAI MCP talent marketplace workflows.
 
-It lets candidates ask ordinary prompts like `найди мне работу`, `find me a job`, or `help me get hired`, then guides the agent to use WorkorAI candidate MCP tools, profile onboarding, and safe MCP key storage. The skill name is intentionally role-neutral so employer workflows can be added as WorkorAI exposes employer MCP tools.
+It supports both sides of the marketplace through one skill:
+
+- **Candidates** ask prompts like `найди мне работу`, `find me a job`, or `help me get hired`; the skill guides them through onboarding, MCP key setup, and the candidate match tools.
+- **Employers** ask prompts like `найди кандидатов`, `hire developers`, `post a job`, or `review applicants`; the skill walks through the 18-tool employer MCP surface (job lifecycle, candidate discovery, invitations, applicants review).
+
+Both roles share one skill name (`workorai`) and one credential helper, with role-aware storage slots so a dual-role user can keep both keys.
 
 ## Install
 
@@ -49,10 +54,16 @@ find me a job
 
 ## What Is Included
 
-- `skills/workorai/SKILL.md` - canonical Agent Skill.
+- `skills/workorai/SKILL.md` - canonical Agent Skill (thin role router).
 - `skills/workorai/agents/openai.yaml` - Codex/OpenAI-style UI metadata.
-- `skills/workorai/references/` - WorkorAI MCP auth, catalog, and troubleshooting notes.
-- `skills/workorai/scripts/credential-store.mjs` - consent-based local MCP key storage.
+- `skills/workorai/references/`
+  - `candidate-catalog.md` - candidate tool mini-schemas
+  - `employer-catalog.md` - 18 employer tool mini-schemas
+  - `employer-recipes.md` - hire / review / lifecycle recipes
+  - `employer-troubleshooting.md` - employer-side error scenarios
+  - `auth-flow.md` - candidate and employer onboarding + saved-key flow
+  - `troubleshooting.md` - cross-role MCP transport / saved-key issues
+- `skills/workorai/scripts/credential-store.mjs` - role-aware consent-based local MCP key storage.
 - `bin/workorai-agent.mjs` - installer, MCP config writer, diagnostics, and credential command wrapper.
 
 ## Supported Targets
@@ -84,28 +95,38 @@ npx @workorai/agent-kit credential get
 
 ## Credentials
 
-The skill reads WorkorAI MCP keys in this order:
+The skill reads WorkorAI MCP keys role-aware. Default `--role` is `candidate`; pass `--role=employer` for the employer slot.
+
+Candidate read order:
 
 1. `WORKORAI_MCP_API_KEY`
-2. OS secret store
+2. OS secret store (account `candidate`)
 3. Shared local fallback at `~/.config/workorai/mcp-token`
+
+Employer read order:
+
+1. `WORKORAI_EMPLOYER_MCP_API_KEY`
+2. OS secret store (account `employer`)
+3. Shared local fallback at `~/.config/workorai/mcp-token-employer`
 
 Save with OS storage by default:
 
 ```bash
-npx @workorai/agent-kit credential save
+npx @workorai/agent-kit credential save                  # candidate (default)
+npx @workorai/agent-kit credential save --role=employer
 ```
 
 Use best-effort storage for headless agent sessions:
 
 ```bash
-npx @workorai/agent-kit credential save --best-effort
+npx @workorai/agent-kit credential save --best-effort --role=candidate
+npx @workorai/agent-kit credential save --best-effort --role=employer
 ```
 
 Use the shared file fallback only after explicit user consent:
 
 ```bash
-npx @workorai/agent-kit credential save --shared-file
+npx @workorai/agent-kit credential save --shared-file --role=<role>
 ```
 
 Never put real WorkorAI MCP keys in repositories, screenshots, issue text, or MCP config. Redact keys as `wai_[REDACTED]`.
@@ -138,9 +159,17 @@ When personalized MCP access is not available, the skill guides the user through
 4. Generate or copy the MCP key: <https://workorai.com/candidate/home?tab=mcp>
 5. Paste the key into the agent session for immediate `candidate.search_jobs` use.
 
-## Employer Roadmap
+## Employer Onboarding
 
-The skill is named `workorai` rather than a candidate-only name because WorkorAI is a two-sided talent marketplace. Current public MCP tools are candidate-first; employer MCP tools should be added under the same skill when they become available.
+When the user asks to hire, post jobs, or review candidates, the skill guides them through:
+
+1. Sign in: <https://workorai.com/employer/login>
+2. Open the Employer Dashboard and locate the Employer MCP card: <https://workorai.com/employer/dashboard>
+3. Generate or copy the MCP key from the card.
+4. Paste the key into the agent session for immediate `employer.*` tool use.
+5. Save with `--role=employer` for future hiring searches.
+
+The 18 employer tools cover the full hire-to-review lifecycle. See `skills/workorai/references/employer-catalog.md` for the mini-schemas and `skills/workorai/references/employer-recipes.md` for the four calling-order recipes (hire from a specific job, free-form hire, funnel review, pending-invites cleanup) plus the job lifecycle (create → publish → close → archive).
 
 ## Development
 
