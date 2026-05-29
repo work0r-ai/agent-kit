@@ -14,24 +14,85 @@ import { homedir, platform } from 'node:os';
 import { dirname, join } from 'node:path';
 
 const SERVICE = 'workorai';
-const ACCOUNT = 'candidate';
-const ENV_KEY = 'WORKORAI_MCP_API_KEY';
 const CONFIG_HOME = process.env.XDG_CONFIG_HOME || join(homedir(), '.config');
-const SHARED_FILE_PATH = join(CONFIG_HOME, 'workorai', 'mcp-token');
 const TOKEN_PATTERN = /^wai_\S{16,}$/;
 
-const [, , command, ...args] = process.argv;
+// Role-aware storage slots — see
+// `docs/plans/2026-05-29-workorai-skill-employer-update-design.md`
+// (Q4 in the WorkorAI repo).
+const ROLE_VALUES = new Set(['candidate', 'employer']);
+const DEFAULT_ROLE = 'candidate';
+const ENV_KEY_BY_ROLE = {
+  candidate: 'WORKORAI_MCP_API_KEY',
+  employer: 'WORKORAI_EMPLOYER_MCP_API_KEY',
+};
+const SHARED_FILE_BY_ROLE = {
+  candidate: join(CONFIG_HOME, 'workorai', 'mcp-token'),
+  employer: join(CONFIG_HOME, 'workorai', 'mcp-token-employer'),
+};
+// OS secret store account name. Distinguishes roles inside the same
+// service entry so candidate + employer keys coexist.
+const ACCOUNT_BY_ROLE = {
+  candidate: 'candidate',
+  employer: 'employer',
+};
+
+const extractRoleFlag = (argv) => {
+  let role = DEFAULT_ROLE;
+  const rest = [];
+  for (const arg of argv) {
+    const match = /^--role(?:=(.+))?$/.exec(arg);
+    if (!match) {
+      rest.push(arg);
+      continue;
+    }
+    const value = match[1];
+    if (!value || !ROLE_VALUES.has(value)) {
+      throw new Error(
+        `--role requires one of: ${[...ROLE_VALUES].join(', ')}`,
+      );
+    }
+    role = value;
+  }
+  return { role, rest };
+};
+
+const rawArgs = process.argv.slice(2);
+const command = rawArgs[0];
+let role;
+let args;
+try {
+  const extracted = extractRoleFlag(rawArgs.slice(1));
+  role = extracted.role;
+  args = extracted.rest;
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}
+
+const ACCOUNT = ACCOUNT_BY_ROLE[role];
+const ENV_KEY = ENV_KEY_BY_ROLE[role];
+const SHARED_FILE_PATH = SHARED_FILE_BY_ROLE[role];
+
+// Test isolation hook — set `WORKORAI_DISABLE_OS_KEYSTORE=1` to short-
+// circuit the macOS/Linux/Windows secret-store paths so the tests can
+// exercise env + shared-file behaviour without touching the real
+// keystore (which would prompt for unlock or fail in CI).
+const OS_KEYSTORE_DISABLED = process.env.WORKORAI_DISABLE_OS_KEYSTORE === '1';
 
 const usage = () => {
   console.error(`Usage:
-  node credential-store.mjs get
-  node credential-store.mjs save [--best-effort|--shared-file]
-  node credential-store.mjs delete [--shared-file]
+  node credential-store.mjs get [--role=candidate|employer]
+  node credential-store.mjs save [--role=candidate|employer] [--best-effort|--shared-file]
+  node credential-store.mjs delete [--role=candidate|employer] [--shared-file]
 
 save reads the WorkorAI MCP key from piped stdin or prompts in an interactive terminal.
 get prints the key to stdout only when found.
 Default read order: env(${ENV_KEY}) -> OS secret store -> shared file fallback.
 Default save backend: OS secret store.
+Default role is 'candidate'. Pass --role=employer to use the employer key slot
+(env WORKORAI_EMPLOYER_MCP_API_KEY, file ~/.config/workorai/mcp-token-employer,
+OS keystore account 'employer').
 Use --best-effort after explicit consent to save to OS secret store, then fall back to the shared 0600 file if OS storage is unavailable.
 Use --shared-file only when the user explicitly chooses file fallback.`);
 };
@@ -349,6 +410,10 @@ const removePowerShellSecretManagement = () => {
 };
 
 const tryGetFromOsStore = () => {
+  if (OS_KEYSTORE_DISABLED) {
+    return null;
+  }
+
   const token =
     getFromMacKeychain() ??
     getFromLinuxSecretService() ??
@@ -396,6 +461,12 @@ const deleteTokenFile = (filePath) => {
 };
 
 const saveToOsStore = (token) => {
+  if (OS_KEYSTORE_DISABLED) {
+    throw new Error(
+      `OS keystore disabled via WORKORAI_DISABLE_OS_KEYSTORE. Use ${ENV_KEY} or --shared-file.`,
+    );
+  }
+
   if (platform() === 'darwin') {
     saveToMacKeychain(token);
     return 'macOS Keychain';
@@ -415,6 +486,9 @@ const saveToOsStore = (token) => {
 };
 
 const deleteFromOsStore = () => {
+  if (OS_KEYSTORE_DISABLED) {
+    return;
+  }
   deleteFromMacKeychain();
   deleteFromLinuxSecretService();
   removePowerShellSecretManagement();
