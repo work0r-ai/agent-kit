@@ -174,3 +174,16 @@ test('warnIfKeystoreDisabled does NOT fire on save --shared-file (avoids stderr 
     `--shared-file save should not emit the disable-warning. stderr was: ${result.stderr}`,
   );
 });
+
+test('handleDelete exits 1 when OS keystore delete fails (C1 contract)', () => {
+  // Without this contract, the previous shape returned exit 0 even on
+  // real backend failures (Keychain locked, secret-tool D-Bus dead,
+  // PowerShell vault inaccessible). Scripts piping
+  // `credential-store delete && next-cmd` saw `next-cmd` run despite
+  // the rotation having silently failed.
+  const result = runCli(['delete', '--role=candidate'], {
+    env: { WORKORAI_TEST_FAKE_DELETE_FAILURE: '1' },
+  });
+  assert.equal(result.status, 1, 'should exit 1 on real keystore delete failure');
+  assert.match(result.stderr, /delete reported failures/);
+});

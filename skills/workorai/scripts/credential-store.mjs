@@ -277,14 +277,20 @@ const surfaceKeystoreReadFailure = (backendLabel, error) => {
   );
 };
 
+// Returns true when the error is a benign "no entry" miss (silent),
+// false when a real backend failure was surfaced to stderr. Callers
+// use the return value to propagate non-zero exit through
+// `deleteFromOsStore` → `handleDelete` so scripts piping `delete` into
+// follow-up commands can detect failure.
 const surfaceKeystoreDeleteFailure = (backendLabel, error) => {
   if (errorLooksLikeNotFound(backendLabel, error)) {
-    return; // ordinary "no entry to delete" — stay silent
+    return true; // "nothing to delete" — caller treats as success
   }
   const raw = error instanceof Error ? error.message : String(error);
   process.stderr.write(
     `credential-store: ${backendLabel} delete failed: ${redactSecrets(raw)}\n`,
   );
+  return false;
 };
 
 const getFromMacKeychain = () => {
@@ -334,9 +340,13 @@ const saveToMacKeychain = (token) => {
   );
 };
 
+// Each platform delete helper returns true when its work succeeded
+// (including the wrong-platform no-op case) and false when a real
+// backend failure was surfaced to stderr. `deleteFromOsStore`
+// aggregates the three results.
 const deleteFromMacKeychain = () => {
   if (platform() !== 'darwin') {
-    return;
+    return true;
   }
   try {
     execFileSync('/usr/bin/security', [
@@ -346,8 +356,9 @@ const deleteFromMacKeychain = () => {
       '-s',
       SERVICE,
     ], { stdio: ['ignore', 'ignore', 'pipe'] });
+    return true;
   } catch (error) {
-    surfaceKeystoreDeleteFailure('macOS Keychain', error);
+    return surfaceKeystoreDeleteFailure('macOS Keychain', error);
   }
 };
 
@@ -390,7 +401,7 @@ const saveToLinuxSecretService = (token) => {
 
 const deleteFromLinuxSecretService = () => {
   if (platform() !== 'linux' || !commandExists('secret-tool')) {
-    return;
+    return true;
   }
 
   try {
@@ -401,8 +412,9 @@ const deleteFromLinuxSecretService = () => {
       'account',
       ACCOUNT,
     ], { stdio: ['ignore', 'ignore', 'pipe'] });
+    return true;
   } catch (error) {
-    surfaceKeystoreDeleteFailure('Linux Secret Service', error);
+    return surfaceKeystoreDeleteFailure('Linux Secret Service', error);
   }
 };
 
@@ -488,12 +500,12 @@ const saveToPowerShellSecretManagement = (token) => {
 
 const removePowerShellSecretManagement = () => {
   if (platform() !== 'win32') {
-    return;
+    return true;
   }
 
   const powerShell = findPowerShell();
   if (!powerShell) {
-    return;
+    return true;
   }
 
   try {
@@ -503,8 +515,9 @@ const removePowerShellSecretManagement = () => {
       '-Command',
       `Remove-Secret -Name '${powerShellSecretName()}' -ErrorAction SilentlyContinue`,
     ], { stdio: ['ignore', 'ignore', 'pipe'] });
+    return true;
   } catch (error) {
-    surfaceKeystoreDeleteFailure('PowerShell SecretManagement', error);
+    return surfaceKeystoreDeleteFailure('PowerShell SecretManagement', error);
   }
 };
 
@@ -560,17 +573,19 @@ const deleteTokenFile = (filePath) => {
 };
 
 const saveToOsStore = (token) => {
-  // Test hook: when WORKORAI_TEST_FAKE_KEYSTORE_ERROR is set, throw an
-  // error carrying that message. Lets the role-test suite exercise
-  // the `handleSave` catch path with a token-bearing message and
-  // assert the redaction contract on stderr without spinning up a
-  // real OS keystore. Production code never sets this env var.
-  const fakeError = process.env.WORKORAI_TEST_FAKE_KEYSTORE_ERROR;
-  if (fakeError) {
-    throw new Error(fakeError);
-  }
-
+  // Test hook: when BOTH `WORKORAI_DISABLE_OS_KEYSTORE=1` AND
+  // `WORKORAI_TEST_FAKE_KEYSTORE_ERROR=<text>` are set, throw an
+  // error carrying that message. Gating on the disable env var means
+  // the hook is unreachable in any production context where the user
+  // hasn't already opted into test-isolation mode — a wrapper that
+  // forgets to set DISABLE_OS_KEYSTORE cannot force a fake error.
+  // Lets the role-test suite exercise the `handleSave` catch path
+  // with a token-bearing message and assert the redaction contract.
   if (OS_KEYSTORE_DISABLED) {
+    const fakeError = process.env.WORKORAI_TEST_FAKE_KEYSTORE_ERROR;
+    if (fakeError) {
+      throw new Error(fakeError);
+    }
     throw new Error(
       `OS keystore disabled via WORKORAI_DISABLE_OS_KEYSTORE. Use ${ENV_KEY} or --shared-file.`,
     );
@@ -596,11 +611,26 @@ const saveToOsStore = (token) => {
 
 const deleteFromOsStore = () => {
   if (OS_KEYSTORE_DISABLED) {
-    return;
+    // Test hook (gated identically to WORKORAI_TEST_FAKE_KEYSTORE_ERROR):
+    // simulate the aggregated-failure path so the C1 contract
+    // (handleDelete must exit 1 on a real keystore delete failure)
+    // can be tested without spinning up an actual keystore. Emits
+    // the same stderr line surfaceKeystoreDeleteFailure would.
+    if (process.env.WORKORAI_TEST_FAKE_DELETE_FAILURE === '1') {
+      process.stderr.write(
+        'credential-store: macOS Keychain delete failed: simulated keystore failure\n',
+      );
+      return false;
+    }
+    return true;
   }
-  deleteFromMacKeychain();
-  deleteFromLinuxSecretService();
-  removePowerShellSecretManagement();
+  // Run all three; only the current platform's helper does real work,
+  // the other two short-circuit to `true`. Aggregate so a real backend
+  // failure on the active platform propagates to the exit code.
+  const macOk = deleteFromMacKeychain();
+  const linuxOk = deleteFromLinuxSecretService();
+  const winOk = removePowerShellSecretManagement();
+  return macOk && linuxOk && winOk;
 };
 
 // Surface the test-isolation kill-switch when the user has it set.
@@ -694,7 +724,16 @@ const handleDelete = () => {
     return;
   }
 
-  deleteFromOsStore();
+  const ok = deleteFromOsStore();
+  if (!ok) {
+    process.stderr.write(
+      'credential-store: delete reported failures on the OS keystore. The ' +
+        'entry may still be present in the keychain/vault. Re-run with ' +
+        '--shared-file to clear the file fallback explicitly, or resolve ' +
+        'the keystore error reported above before retrying.\n',
+    );
+    process.exit(1);
+  }
 };
 
 try {

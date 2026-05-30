@@ -43,7 +43,57 @@ All notable changes to `@workorai/agent-kit` are documented here.
   Both layers move together (defence-in-depth schema strategy; see
   WorkorAI repo `docs/plans/2026-05-29-workorai-skill-employer-update-design.md`).
 
-## 0.2.1 - 2026-05-05
+### Hardening (post-review fixes)
+
+- Windows PowerShell SecretManagement now embeds the role in the
+  secret name (`workorai-candidate` vs `workorai-employer`) so
+  dual-role users on Windows do not collide their candidate and
+  employer keys. macOS Keychain and Linux Secret Service already
+  separated by `account=`.
+- OS keystore read failures (locked vault, dismissed unlock prompt,
+  missing secret-tool daemon) are no longer silently swallowed. The
+  `surfaceKeystoreReadFailure` helper differentiates "not present"
+  (the normal fall-through case) from real errors and logs the
+  redacted error message to stderr.
+- `handleGet` emits a stale-fallback advisory to stderr when it
+  returns a shared-file token after the OS keystore read errored —
+  authentication failures against WorkorAI MCP that previously
+  looked like "the token I just saved doesn't work" now carry a
+  breadcrumb.
+- `handleDelete` aggregates platform delete results and exits 1 on
+  real backend failures. Scripts piping
+  `credential-store delete && next-cmd` no longer run `next-cmd`
+  when the rotation actually failed.
+- `KEYSTORE_NOT_FOUND_PATTERNS` broadened with the real not-found
+  error strings from PowerShell SecretManagement and a
+  Linux-specific exit-1-empty-stderr heuristic for `secret-tool`.
+- `WORKORAI_TEST_FAKE_KEYSTORE_ERROR` and
+  `WORKORAI_TEST_FAKE_DELETE_FAILURE` test hooks are gated on
+  `WORKORAI_DISABLE_OS_KEYSTORE=1` so they cannot affect any
+  production context where the user has not opted into the
+  test-isolation kill-switch.
+- `MCP outputSchema`: date and proficiency fields on
+  `APPLICANT_DETAIL.resume.*` tightened from `['string', 'null']`
+  to `'string'` to match what the serializer actually emits
+  (`formatDate` returns empty strings, never null). Fields that
+  are nullable in the underlying TypeScript types (candidate
+  headline/avatarUrl/location, contact email/phone, interview
+  summary, fact notes) keep their nullable declaration.
+
+### Known issues — targeted for 0.3.1
+
+- `APPLICANT_DETAIL.resume.personalInfo` contact fields
+  (`email`, `phone`, `linkedinUrl`, `githubUrl`, `websiteUrl`) use
+  empty strings as the redaction sentinel below `SHORTLISTED`. The
+  canonical contact-gating discriminator lives on
+  `list_applicants.contact` (nullable object); the resume blob is a
+  convenience view. A future release will widen these fields to
+  `['string', 'null']` and emit `null` on the gated path so the
+  redaction is observable from the JSON Schema alone.
+- `WORKORAI_DISABLE_OS_KEYSTORE=1` + `credential-store delete`
+  without `--shared-file` is a warned no-op (stderr line fires,
+  exit code 0). A future release may exit 2 to make the no-op
+  detectable from a script's `$?` check.
 
 - Adds explicit install targets for Cursor, Qwen Code, Antigravity, and Deep Code / DeepSeek workflows.
 - Adds registry notes for Cursor, Qwen Code, Antigravity, and Deep Code.
