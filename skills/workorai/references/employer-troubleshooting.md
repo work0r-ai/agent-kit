@@ -4,10 +4,16 @@ Scenarios on the employer MCP surface. For candidate-side issues, see
 `troubleshooting.md` (cross-role) and the candidate flow in
 `auth-flow.md`.
 
-## Employer tools not visible
+## Employer tool call fails with "requires employer authentication"
 
-Cause: the connected MCP key is candidate-scoped (or anonymous), or the
-underlying user is not an EMPLOYER.
+Employer tools are always visible in `tools/list` (visible-but-gated),
+so a missing tool is NOT the signal — a failed *call* is. An employer
+tool invoked without a valid EMPLOYER key returns
+`employer.<tool> requires employer authentication. Provide apiKey with
+a WorkorAI MCP key...`.
+
+Cause: no key was passed, the key is candidate-scoped, the key is
+revoked, or the underlying user is not an EMPLOYER.
 
 Fix: ask the user to open
 `https://workorai.com/employer/dashboard`, locate the Employer MCP
@@ -17,7 +23,17 @@ card, and copy or generate the key. Then save with:
 node scripts/credential-store.mjs save --best-effort --role=employer
 ```
 
-Subsequent calls use that key as `apiKey` on every `employer.*` tool.
+Subsequent calls use that key as the `apiKey` argument on every
+`employer.*` tool — no MCP reconnect required.
+
+## Employer tools missing entirely from tools/list
+
+If `employer.*` tools do not appear in `tools/list` at all (only
+`request_access` + the two candidate tools), the client is connected to
+an OLDER MCP deployment that predates the visible-but-gated employer
+surface, or the session is stale. Reconnect to the latest deployment.
+This is a deployment/version issue, not a key issue — a current
+deployment lists all 21 tools anonymously.
 
 ## INVITE_BLOCKED: INVITE_NOT_ALLOWED
 

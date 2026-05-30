@@ -41,10 +41,14 @@ schema/recipe detail to the `references/` files.
    `references/auth-flow.md`. Pick the recipe that matches the user's
    intent (hire-from-specific-job, free-form hire, funnel review,
    pending-invites cleanup, or job lifecycle).
-4. If tools for the chosen role are not visible in `tools/list`, the
-   MCP key is wrong-role or missing. Send the user to the matching
-   onboarding URL (Candidate Home or Employer Dashboard) and accept
-   the new key inline.
+4. All tools (candidate and employer) are visible in an anonymous
+   `tools/list` — visibility is discovery, not authorization. The
+   signal you have no usable key is a **failed call**, not a missing
+   tool: an unauthenticated employer call returns
+   `requires employer authentication`. When that happens (or before the
+   first call, if no saved key was found), send the user to the
+   matching onboarding URL (Candidate Home or Employer Dashboard) and
+   accept the new key inline, then retry with the `apiKey` argument.
 5. Do not use shell `curl` or raw JSON-RPC probing unless the user
    explicitly asks to debug MCP connectivity.
 

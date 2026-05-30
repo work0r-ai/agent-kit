@@ -12,15 +12,21 @@
 
 For normal job-search requests, do not run raw `curl` or JSON-RPC checks before giving the candidate onboarding path. Transport debugging is only appropriate when the user explicitly asks why MCP connection failed or asks to test the server.
 
-## Only `request_access` Is Visible
+## Tool Visibility
 
-Modern WorkorAI MCP should expose `request_access`, `candidate.search_jobs`, and `candidate.get_job` before auth (anonymous session). Employer tools become visible only after authenticating with an EMPLOYER-scoped key.
+Modern WorkorAI MCP exposes ALL 21 tools in an anonymous `tools/list`:
+`request_access`, the two candidate tools, and all 18 `employer.*`
+tools — visible-but-gated. Visibility is discovery (so MCP clients
+register the names); authorization is enforced per call. A tool in the
+list is not proof the current caller can invoke it.
 
-If only `request_access` is visible:
-- For candidate intents: the client is on an older deployment or a stale MCP session — reconnect.
-- For employer intents: this is expected before auth. Authenticate with an EMPLOYER key (see `employer-troubleshooting.md` → "Employer tools not visible") and re-run `tools/list`.
+If only `request_access` (or only the 3 candidate-era tools) is
+visible, the client is connected to an OLDER deployment that predates
+the visible-but-gated employer surface, or the session is stale —
+reconnect to the latest deployment. This is a version issue, not a key
+issue.
 
-If tools are visible but fail auth, common reasons:
+If tools are visible but a call fails auth, common reasons:
 - no Bearer key was sent
 - no `apiKey` argument was provided for an anonymous session
 - the key is invalid
@@ -61,10 +67,19 @@ If OS secret storage fails:
 
 ## Visible Tool Scopes
 
-Active scopes per role:
-- Public (always): `request_access`
-- Candidate (visible, gated): `candidate.search_jobs`, `candidate.get_job`
-- Employer (gated, EMPLOYER key only): 18 tools — see `employer-catalog.md`
+All tools are visible-but-gated in an anonymous `tools/list`; the
+key determines what can be *called*, not what is *listed*:
+- Public (always callable): `request_access`
+- Candidate (visible to all, callable with a candidate key):
+  `candidate.search_jobs`, `candidate.get_job`
+- Employer (visible to all, callable with an EMPLOYER key): 18 tools —
+  see `employer-catalog.md`
+
+An anonymous or candidate-scoped caller seeing `employer.*` in the list
+is EXPECTED and correct — visibility is discovery. The call-time gate
+rejects an employer call made without a valid employer key. Once a
+session authenticates with a role key, `tools/list` narrows to that
+role's callable surface.
 
 If a candidate-scoped key sees employer tools (or vice versa), the server is misconfigured — please file an operator issue. The runtime filter is role-aware on `tools/list`.
 

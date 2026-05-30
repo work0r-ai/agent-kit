@@ -105,11 +105,11 @@ If OS secret storage fails in a headless or sandboxed agent session, report the 
 
 ## Runtime Rule
 
-Modern WorkorAI MCP deployments expose gated candidate tools in anonymous sessions.
+Modern WorkorAI MCP deployments expose ALL tools (candidate and employer) in anonymous sessions — visible-but-gated. Visibility (`tools/list`) and authorization (calling a tool) are separate layers: a tool appearing in the list does not mean the current caller can invoke it.
 
 `candidate.search_jobs` requires either an authenticated candidate user id from the MCP session or a valid `apiKey` argument. If the key is missing, invalid, revoked, or not tied to an active candidate access state, the tool cannot rank jobs against the candidate profile.
 
-`employer.*` tools require an EMPLOYER-scoped key. Anonymous and candidate-scoped keys do not see employer tools in `tools/list`.
+`employer.*` tools are visible to everyone in `tools/list` (so MCP clients register them at discovery time) but require an EMPLOYER-scoped key at call time. An anonymous or candidate-scoped caller sees `employer.invite_candidate` in the list but a call without a valid employer key throws `requires employer authentication`. Pass the employer key as the `apiKey` argument — no reconnect needed.
 
 Use the `apiKey` argument after:
 - generating a key
