@@ -224,21 +224,66 @@ const tryGetFromEnv = () => {
 // through to the next backend, but the latter is logged to stderr
 // with redacted detail so users have a chance to see why the
 // keystore read missed.
+//
+// On Linux, `secret-tool lookup` exits 1 with NO stderr output when
+// the entry is missing — Node's execFileSync then throws with a
+// generic "Command failed: secret-tool lookup ..." message. The
+// patterns alone cannot disambiguate that from a real backend error;
+// the helper below also inspects exit code + stderr emptiness for the
+// Linux backend specifically.
+//
+// On Windows, PowerShell SecretManagement emits "The secret <name>
+// was not found." for normal misses, which the patterns now match.
+//
+// Track whether ANY OS-store read surfaced a real backend error so
+// handleGet can later flag that a shared-file fallback might be stale.
 const KEYSTORE_NOT_FOUND_PATTERNS = [
   /The specified item could not be found in the keychain/i, // macOS security
-  /No matching results\.?$/i, // secret-tool
-  /No secret found for/i, // secret-tool variant
-  /Cannot find any secret/i, // PowerShell SecretManagement
-  /could not be found/i,
+  /The secret .* was not found/i,                            // PowerShell SecretManagement
+  /Cannot find a secret with name/i,                         // PowerShell SecretManagement variant
+  /Cannot find any secret/i,                                 // older PowerShell SecretManagement
+  /No matching results/i,                                    // some secret-tool builds
+  /No secret found for/i,                                    // secret-tool variant
+  /could not be found/i,                                     // generic catch-all
 ];
 
-const surfaceKeystoreReadFailure = (backendLabel, error) => {
+let osStoreReadErrorSurfaced = false;
+
+const errorLooksLikeNotFound = (backendLabel, error) => {
   const raw = error instanceof Error ? error.message : String(error);
-  if (KEYSTORE_NOT_FOUND_PATTERNS.some((re) => re.test(raw))) {
+
+  // Linux secret-tool: exit code 1 with no stderr means "not present".
+  // Anything else (locked seahorse, missing D-Bus, etc.) carries
+  // non-empty stderr or a different exit code.
+  if (backendLabel === 'Linux Secret Service') {
+    const status = typeof error?.status === 'number' ? error.status : null;
+    const stderr = error?.stderr ? String(error.stderr).trim() : '';
+    if (status === 1 && stderr.length === 0) {
+      return true;
+    }
+  }
+
+  return KEYSTORE_NOT_FOUND_PATTERNS.some((re) => re.test(raw));
+};
+
+const surfaceKeystoreReadFailure = (backendLabel, error) => {
+  if (errorLooksLikeNotFound(backendLabel, error)) {
     return; // ordinary "no entry" — stay silent
   }
+  osStoreReadErrorSurfaced = true;
+  const raw = error instanceof Error ? error.message : String(error);
   process.stderr.write(
     `credential-store: ${backendLabel} read failed (falling through): ${redactSecrets(raw)}\n`,
+  );
+};
+
+const surfaceKeystoreDeleteFailure = (backendLabel, error) => {
+  if (errorLooksLikeNotFound(backendLabel, error)) {
+    return; // ordinary "no entry to delete" — stay silent
+  }
+  const raw = error instanceof Error ? error.message : String(error);
+  process.stderr.write(
+    `credential-store: ${backendLabel} delete failed: ${redactSecrets(raw)}\n`,
   );
 };
 
@@ -290,6 +335,9 @@ const saveToMacKeychain = (token) => {
 };
 
 const deleteFromMacKeychain = () => {
+  if (platform() !== 'darwin') {
+    return;
+  }
   try {
     execFileSync('/usr/bin/security', [
       'delete-generic-password',
@@ -297,9 +345,9 @@ const deleteFromMacKeychain = () => {
       ACCOUNT,
       '-s',
       SERVICE,
-    ], { stdio: 'ignore' });
-  } catch {
-    // Missing credentials are already deleted.
+    ], { stdio: ['ignore', 'ignore', 'pipe'] });
+  } catch (error) {
+    surfaceKeystoreDeleteFailure('macOS Keychain', error);
   }
 };
 
@@ -341,7 +389,7 @@ const saveToLinuxSecretService = (token) => {
 };
 
 const deleteFromLinuxSecretService = () => {
-  if (!commandExists('secret-tool')) {
+  if (platform() !== 'linux' || !commandExists('secret-tool')) {
     return;
   }
 
@@ -352,9 +400,9 @@ const deleteFromLinuxSecretService = () => {
       SERVICE,
       'account',
       ACCOUNT,
-    ], { stdio: 'ignore' });
-  } catch {
-    // Missing credentials are already deleted.
+    ], { stdio: ['ignore', 'ignore', 'pipe'] });
+  } catch (error) {
+    surfaceKeystoreDeleteFailure('Linux Secret Service', error);
   }
 };
 
@@ -439,8 +487,11 @@ const saveToPowerShellSecretManagement = (token) => {
 };
 
 const removePowerShellSecretManagement = () => {
-  const powerShell = findPowerShell();
+  if (platform() !== 'win32') {
+    return;
+  }
 
+  const powerShell = findPowerShell();
   if (!powerShell) {
     return;
   }
@@ -451,9 +502,9 @@ const removePowerShellSecretManagement = () => {
       '-NonInteractive',
       '-Command',
       `Remove-Secret -Name '${powerShellSecretName()}' -ErrorAction SilentlyContinue`,
-    ], { stdio: 'ignore' });
-  } catch {
-    // Missing credentials are already deleted.
+    ], { stdio: ['ignore', 'ignore', 'pipe'] });
+  } catch (error) {
+    surfaceKeystoreDeleteFailure('PowerShell SecretManagement', error);
   }
 };
 
@@ -509,6 +560,16 @@ const deleteTokenFile = (filePath) => {
 };
 
 const saveToOsStore = (token) => {
+  // Test hook: when WORKORAI_TEST_FAKE_KEYSTORE_ERROR is set, throw an
+  // error carrying that message. Lets the role-test suite exercise
+  // the `handleSave` catch path with a token-bearing message and
+  // assert the redaction contract on stderr without spinning up a
+  // real OS keystore. Production code never sets this env var.
+  const fakeError = process.env.WORKORAI_TEST_FAKE_KEYSTORE_ERROR;
+  if (fakeError) {
+    throw new Error(fakeError);
+  }
+
   if (OS_KEYSTORE_DISABLED) {
     throw new Error(
       `OS keystore disabled via WORKORAI_DISABLE_OS_KEYSTORE. Use ${ENV_KEY} or --shared-file.`,
@@ -558,17 +619,45 @@ const warnIfKeystoreDisabled = (command) => {
 
 const handleGet = () => {
   warnIfKeystoreDisabled('get');
-  const token = tryGetFromEnv() ?? tryGetFromOsStore() ?? readTokenFile(SHARED_FILE_PATH);
+  const fromEnv = tryGetFromEnv();
+  if (fromEnv) {
+    process.stdout.write(`${fromEnv}\n`);
+    return;
+  }
+  const fromOs = tryGetFromOsStore();
+  if (fromOs) {
+    process.stdout.write(`${fromOs}\n`);
+    return;
+  }
 
-  if (!token) {
+  // If the OS keystore read surfaced a real backend error (not a plain
+  // "no entry" miss), the shared file is a potentially-stale fallback:
+  // the keystore may carry a newer token that the file hasn't seen.
+  // Make that explicit so the user can debug an auth failure that
+  // would otherwise look like "I just saved the key, why doesn't it
+  // work" — see silent-failure HIGH F3.
+  const fromFile = readTokenFile(SHARED_FILE_PATH);
+  if (!fromFile) {
     process.exit(1);
   }
 
-  process.stdout.write(`${token}\n`);
+  if (osStoreReadErrorSurfaced) {
+    process.stderr.write(
+      'credential-store: returning shared-file fallback token because the ' +
+        'OS keystore read errored above. Re-run `save` if authentication ' +
+        'against WorkorAI MCP fails.\n',
+    );
+  }
+
+  process.stdout.write(`${fromFile}\n`);
 };
 
 const handleSave = async () => {
-  warnIfKeystoreDisabled('save');
+  // Only warn when the OS keystore is actually about to be touched.
+  // `--shared-file` short-circuits to the file fallback, so the
+  // disable env var is irrelevant — the warning would just train
+  // users to ignore credential-store stderr noise.
+  if (!args.includes('--shared-file')) warnIfKeystoreDisabled('save');
   const token = await readTokenForSave();
 
   if (args.includes('--shared-file')) {
@@ -599,7 +688,7 @@ const handleSave = async () => {
 };
 
 const handleDelete = () => {
-  warnIfKeystoreDisabled('delete');
+  if (!args.includes('--shared-file')) warnIfKeystoreDisabled('delete');
   if (args.includes('--shared-file')) {
     deleteTokenFile(SHARED_FILE_PATH);
     return;
