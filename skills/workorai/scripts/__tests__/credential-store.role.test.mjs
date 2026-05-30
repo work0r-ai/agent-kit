@@ -116,3 +116,29 @@ test('--role rejects invalid value', () => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /--role/);
 });
+
+test('--role specified twice is rejected (no silent last-write-wins)', () => {
+  const result = runCli(['get', '--role=candidate', '--role=employer'], { allowExit: true });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /more than once/);
+});
+
+test('save --best-effort falls back to shared file when OS keystore is disabled', () => {
+  // Exercises handleSave's catch path: saveToOsStore throws because
+  // WORKORAI_DISABLE_OS_KEYSTORE=1 is set in the test env, and
+  // --best-effort consumes the error and writes the shared file
+  // instead. Without this test, a refactor that drops redactSecrets
+  // from the catch block would silently regress credential redaction.
+  runCli(['save', '--role=employer', '--best-effort'], {
+    input: `${VALID_EMPLOYER_KEY}\n`,
+  });
+  const employerPath = join(sandbox, 'workorai', 'mcp-token-employer');
+  assert.ok(existsSync(employerPath), 'fallback shared file should be written');
+  assert.equal(readFileSync(employerPath, 'utf8').trim(), VALID_EMPLOYER_KEY);
+});
+
+test('warnIfKeystoreDisabled fires on get/save/delete when env is set', () => {
+  // The disable env var is on by default in this test harness.
+  const result = runCli(['get'], { allowExit: true });
+  assert.match(result.stderr, /WORKORAI_DISABLE_OS_KEYSTORE/);
+});

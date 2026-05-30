@@ -39,12 +39,21 @@ const ACCOUNT_BY_ROLE = {
 
 const extractRoleFlag = (argv) => {
   let role = DEFAULT_ROLE;
+  let seen = false;
   const rest = [];
   for (const arg of argv) {
     const match = /^--role(?:=(.+))?$/.exec(arg);
     if (!match) {
       rest.push(arg);
       continue;
+    }
+    if (seen) {
+      // Two `--role=` flags would silently last-write-wins and route
+      // the call to the wrong storage slot. Surface it instead.
+      throw new Error(
+        '--role specified more than once. Pick one of: ' +
+          `${[...ROLE_VALUES].join(', ')}.`,
+      );
     }
     const value = match[1];
     if (!value || !ROLE_VALUES.has(value)) {
@@ -53,6 +62,7 @@ const extractRoleFlag = (argv) => {
       );
     }
     role = value;
+    seen = true;
   }
   return { role, rest };
 };
@@ -208,6 +218,30 @@ const tryGetFromEnv = () => {
   return token;
 };
 
+// Differentiate "not-found" (the normal fall-through case) from
+// "backend error" (locked vault, dismissed unlock prompt, missing
+// secret-tool daemon). Both still return null so the caller falls
+// through to the next backend, but the latter is logged to stderr
+// with redacted detail so users have a chance to see why the
+// keystore read missed.
+const KEYSTORE_NOT_FOUND_PATTERNS = [
+  /The specified item could not be found in the keychain/i, // macOS security
+  /No matching results\.?$/i, // secret-tool
+  /No secret found for/i, // secret-tool variant
+  /Cannot find any secret/i, // PowerShell SecretManagement
+  /could not be found/i,
+];
+
+const surfaceKeystoreReadFailure = (backendLabel, error) => {
+  const raw = error instanceof Error ? error.message : String(error);
+  if (KEYSTORE_NOT_FOUND_PATTERNS.some((re) => re.test(raw))) {
+    return; // ordinary "no entry" — stay silent
+  }
+  process.stderr.write(
+    `credential-store: ${backendLabel} read failed (falling through): ${redactSecrets(raw)}\n`,
+  );
+};
+
 const getFromMacKeychain = () => {
   if (platform() !== 'darwin') {
     return null;
@@ -222,9 +256,10 @@ const getFromMacKeychain = () => {
         '-s',
         SERVICE,
         '-w',
-      ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+      ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
     );
-  } catch {
+  } catch (error) {
+    surfaceKeystoreReadFailure('macOS Keychain', error);
     return null;
   }
 };
@@ -281,9 +316,10 @@ const getFromLinuxSecretService = () => {
         SERVICE,
         'account',
         ACCOUNT,
-      ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+      ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
     );
-  } catch {
+  } catch (error) {
+    surfaceKeystoreReadFailure('Linux Secret Service', error);
     return null;
   }
 };
@@ -338,6 +374,12 @@ const findPowerShell = () => {
   return null;
 };
 
+// PowerShell SecretManagement keys on a single Name; unlike macOS
+// Keychain and Linux Secret Service it does NOT expose a separate
+// "account" attribute. Embed the role in the secret name itself so
+// candidate and employer keys do not collide on the same Windows host.
+const powerShellSecretName = () => `${SERVICE}-${ACCOUNT}`;
+
 const getFromPowerShellSecretManagement = () => {
   const powerShell = findPowerShell();
 
@@ -351,10 +393,16 @@ const getFromPowerShellSecretManagement = () => {
         '-NoProfile',
         '-NonInteractive',
         '-Command',
-        `Get-Secret -Name '${SERVICE}' -AsPlainText -ErrorAction Stop`,
-      ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+        `Get-Secret -Name '${powerShellSecretName()}' -AsPlainText -ErrorAction Stop`,
+      ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
     );
-  } catch {
+  } catch (error) {
+    // Differentiate "secret not present" (normal — fall through to the
+    // next backend) from any other failure (vault locked, module not
+    // installed, dismissed prompt). The latter is silenced today; log
+    // the redacted detail so users have a chance to see why the read
+    // missed.
+    surfaceKeystoreReadFailure('PowerShell SecretManagement', error);
     return null;
   }
 };
@@ -370,7 +418,7 @@ const saveToPowerShellSecretManagement = (token) => {
     '-NoProfile',
     '-NonInteractive',
     '-Command',
-    `$secret = ConvertTo-SecureString -String $env:WORKORAI_SECRET_INPUT -AsPlainText -Force; Set-Secret -Name '${SERVICE}' -Secret $secret`,
+    `$secret = ConvertTo-SecureString -String $env:WORKORAI_SECRET_INPUT -AsPlainText -Force; Set-Secret -Name '${powerShellSecretName()}' -Secret $secret`,
   ], {
     encoding: 'utf8',
     env: {
@@ -402,7 +450,7 @@ const removePowerShellSecretManagement = () => {
       '-NoProfile',
       '-NonInteractive',
       '-Command',
-      `Remove-Secret -Name '${SERVICE}' -ErrorAction SilentlyContinue`,
+      `Remove-Secret -Name '${powerShellSecretName()}' -ErrorAction SilentlyContinue`,
     ], { stdio: 'ignore' });
   } catch {
     // Missing credentials are already deleted.
@@ -494,7 +542,22 @@ const deleteFromOsStore = () => {
   removePowerShellSecretManagement();
 };
 
+// Surface the test-isolation kill-switch when the user has it set.
+// Silent skip of the OS keystore mid-production is a debugging trap
+// (the user thinks their keychain is being consulted; it isn't).
+// Emitted once per CLI invocation, only on a command that actually
+// would touch the keystore.
+const warnIfKeystoreDisabled = (command) => {
+  if (!OS_KEYSTORE_DISABLED) return;
+  if (command !== 'get' && command !== 'save' && command !== 'delete') return;
+  process.stderr.write(
+    'credential-store: WORKORAI_DISABLE_OS_KEYSTORE=1 — OS secret store ' +
+      'bypassed (test-isolation mode). Unset to use the system keychain.\n',
+  );
+};
+
 const handleGet = () => {
+  warnIfKeystoreDisabled('get');
   const token = tryGetFromEnv() ?? tryGetFromOsStore() ?? readTokenFile(SHARED_FILE_PATH);
 
   if (!token) {
@@ -505,6 +568,7 @@ const handleGet = () => {
 };
 
 const handleSave = async () => {
+  warnIfKeystoreDisabled('save');
   const token = await readTokenForSave();
 
   if (args.includes('--shared-file')) {
@@ -535,6 +599,7 @@ const handleSave = async () => {
 };
 
 const handleDelete = () => {
+  warnIfKeystoreDisabled('delete');
   if (args.includes('--shared-file')) {
     deleteTokenFile(SHARED_FILE_PATH);
     return;
