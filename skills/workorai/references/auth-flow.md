@@ -94,14 +94,26 @@ If OS secret storage fails in a headless or sandboxed agent session, report the 
 - After explicit consent to save the key on this machine, use best-effort save: `save --best-effort`.
 - If the user explicitly wants shared file storage, use: `save --shared-file`.
 
-## Access States
+## Access States (candidate)
 
-- `LOCKED`: no qualified profile interview yet
-- `WAITING_FOR_EVALUATION`: interview finished, evaluation still pending
+The candidate MCP access gate is the FACT of a completed + evaluated profile
+interview — there is **NO score threshold**. The discoverability signal is
+the candidate's WHOLE profile embedding (produced when the interview
+completes and ingests), not a passing grade, so key issuance is aligned with
+it. A finished, evaluated interview always qualifies regardless of score.
+
+There are **7 candidate access states**:
+
+- `LOCKED`: no completed + evaluated profile interview yet (none started, in
+  progress, or completed-but-not-yet-evaluated handled below)
+- `WAITING_FOR_EVALUATION`: interview completed, evaluation still running
+  (PENDING / QUEUED / IN_PROGRESS)
+- `EVALUATION_FAILED`: the interview evaluation failed — the candidate must
+  retake the interview
 - `READY`: access active, key can be generated
-- `KEY_ISSUED`: active key already exists
-- `REVERIFY_REQUIRED`: profile changed and access must be revalidated
-- `REVOKED`: access disabled
+- `KEY_ISSUED`: access active and a key already exists
+- `REVERIFY_REQUIRED`: the profile changed and access must be re-verified
+- `REVOKED`: access disabled (admin-side)
 
 ## Runtime Rule
 

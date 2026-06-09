@@ -1,6 +1,6 @@
 ---
 name: workorai
-description: Use for WorkorAI talent marketplace requests from candidates or employers. Candidate triggers include "найди мне работу", "ищу работу", "подбери вакансию", "find me a job", "I need work", and "help me get hired". Employer triggers include hiring, posting jobs, finding candidates, recruiting, and WorkorAI MCP setup. Use for candidate.search_jobs, candidate.get_job, the 18 employer.* tools (job lifecycle, candidate discovery, invitations, applicants review), and MCP key onboarding.
+description: Use for WorkorAI talent marketplace requests from candidates or employers. Candidate triggers include "найди мне работу", "ищу работу", "подбери вакансию", "find me a job", "I need work", and "help me get hired". Employer triggers include hiring, posting jobs, finding candidates, recruiting, and WorkorAI MCP setup. Use for the 9 candidate.* tools (search jobs, job detail, applications, apply, accept/decline invitations, withdraw, saved jobs), the 18 employer.* tools (job lifecycle, candidate discovery, invitations, applicants review), and MCP key onboarding.
 ---
 
 # WorkorAI
@@ -33,9 +33,11 @@ schema/recipe detail to the `references/` files.
 1. Decide role from the user's intent. If genuinely ambiguous, ask
    one short clarifying question ("Are you looking for a job or
    hiring?") — do not run candidate and employer flows in parallel.
-2. **Candidate intent**: read `references/candidate-catalog.md` and
-   `references/auth-flow.md`. Run the candidate flow
-   (`candidate.search_jobs` → `candidate.get_job`).
+2. **Candidate intent**: read `references/candidate-catalog.md`,
+   `references/candidate-recipes.md`, and `references/auth-flow.md`. Run the
+   candidate flow: discover (`candidate.search_jobs` → `candidate.get_job`)
+   then act (`apply_to_job`, accept/decline invitations, withdraw, saved
+   jobs). Edge cases: `references/candidate-troubleshooting.md`.
 3. **Employer intent**: read `references/employer-catalog.md`,
    `references/employer-recipes.md`, and the employer sections of
    `references/auth-flow.md`. Pick the recipe that matches the user's
@@ -81,15 +83,29 @@ schema/recipe detail to the `references/` files.
 - Onboarding URL chain: `https://workorai.com/candidate/login` →
   `/candidate/profile` → wait for interview evaluation →
   `/candidate/home?tab=mcp` to copy the MCP key.
-- Tools: `candidate.search_jobs` → `candidate.get_job`.
+- Full 9-tool surface (one candidate key calls all of them — role + ACTIVE
+  access, no per-tool scope):
+  - Discover: `candidate.search_jobs` → `candidate.get_job`.
+  - Apply: `candidate.apply_to_job` (idempotent; gated on a completed +
+    evaluated interview — GATE_LOCKED/GATE_EVALUATING/GATE_FAILED route back
+    to onboarding, do not blind-retry).
+  - Invitations: `candidate.accept_invitation` (→ APPLIED) /
+    `candidate.decline_invitation` (TERMINAL — blocks re-invite; confirm
+    first). See what's pending with `candidate.get_applications`.
+  - Manage: `candidate.withdraw_application` (soft exit, re-invitable),
+    `candidate.set_saved_job` (desired-state, NOT a toggle) /
+    `candidate.get_saved_jobs` (PUBLISHED-only).
 - Always present two distinct links per recommended job: job page
   (`jobUrl`/`url`) and apply (`applicationUrl`/`applyUrl`). Never show
   apply-only.
-- Surface `matchScore`, `matchReasons`, and `missingMustHaveSkills` —
-  treat missing skills as gaps to discuss, not rejections.
+- Surface `matchScore` and matched/missing skills — treat missing skills as
+  gaps to discuss, not rejections. (`matchReasons` is empty under semantic
+  ranking; it's populated only on the keyword/`q` fallback.)
 - Treat raw `jobId` as internal/debug metadata unless the user asks
   for it.
-- Full mini-schema: `references/candidate-catalog.md`.
+- Mini-schemas: `references/candidate-catalog.md`. Recipes:
+  `references/candidate-recipes.md`. Edge cases:
+  `references/candidate-troubleshooting.md`.
 
 ## Employer Quick Path
 
@@ -124,9 +140,11 @@ schema/recipe detail to the `references/` files.
 
 Read on demand based on intent:
 
-- `references/candidate-catalog.md` — candidate tool mini-schemas
+- `references/candidate-catalog.md` — candidate tool mini-schemas (9)
+- `references/candidate-recipes.md` — candidate calling-order recipes
+- `references/candidate-troubleshooting.md` — candidate-side error scenarios
 - `references/employer-catalog.md` — employer tool mini-schemas (18)
-- `references/employer-recipes.md` — calling-order recipes
+- `references/employer-recipes.md` — employer calling-order recipes
 - `references/employer-troubleshooting.md` — employer-side error scenarios
 - `references/auth-flow.md` — candidate and employer onboarding plus
   saved-key flow

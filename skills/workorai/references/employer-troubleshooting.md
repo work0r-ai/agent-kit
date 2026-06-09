@@ -29,11 +29,12 @@ Subsequent calls use that key as the `apiKey` argument on every
 ## Employer tools missing entirely from tools/list
 
 If `employer.*` tools do not appear in `tools/list` at all (only
-`request_access` + the two candidate tools), the client is connected to
+`request_access` + the candidate tools), the client is connected to
 an OLDER MCP deployment that predates the visible-but-gated employer
 surface, or the session is stale. Reconnect to the latest deployment.
 This is a deployment/version issue, not a key issue — a current
-deployment lists all 21 tools anonymously.
+deployment lists all 28 tools anonymously (`request_access` + 9
+candidate + 18 employer).
 
 ## INVITE_BLOCKED: INVITE_NOT_ALLOWED
 
@@ -52,20 +53,19 @@ Fix:
    - APPLIED → already in the funnel. Use `employer.list_applicants`
      instead of `invite_candidate`.
 
-## INVITE_BLOCKED: PRIVACY_NOT_PUBLIC
+## INVITE_BLOCKED: NOT_DISCOVERABLE
 
-Cause: the candidate has opted out of employer discovery.
+Cause: the candidate is not in the searchable pool. The single
+discoverability gate is a WHOLE candidate embedding, produced only after
+a profile interview both completes AND ingests. No completed-and-ingested
+interview → no embedding → not invitable. There is NO privacy opt-out and
+NO separate matching-profile gate (search == invite: anyone you can find
+in `search_candidates_*`, you can invite).
 
-Fix: tell the user this candidate is not available for direct invites.
-Do not work around it.
-
-## INVITE_BLOCKED: PROFILE_MISSING
-
-Cause: the candidate does not have a `CandidateMatchingProfile` row.
-They have not completed the onboarding interview / matching profile.
-
-Fix: explain the user cannot invite the candidate yet. The candidate
-must complete their profile and matching interview on the WorkorAI side.
+Fix: explain the candidate cannot be invited yet — they must finish their
+profile interview on the WorkorAI side. If the candidate DID appear in a
+search result, retry; a freshly-ingested embedding may have lagged the
+search index briefly.
 
 ## INVITE_BLOCKED: JOB_NOT_PUBLISHED
 

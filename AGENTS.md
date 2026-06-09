@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This repository packages the WorkorAI talent marketplace Agent Skill for public distribution. The single `workorai` skill covers both candidate (`candidate.search_jobs`, `candidate.get_job`) and employer (18 tools: job lifecycle, candidate discovery, invitations, applicants review) workflows on the WorkorAI MCP server.
+This repository packages the WorkorAI talent marketplace Agent Skill for public distribution. The single `workorai` skill covers both candidate (9 tools: job search, job detail, applications, apply, invitation accept/decline, withdraw, saved jobs) and employer (18 tools: job lifecycle, candidate discovery, invitations, applicants review) workflows on the WorkorAI MCP server.
 
 ## Structure
 

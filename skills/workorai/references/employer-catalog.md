@@ -215,8 +215,9 @@ Inputs:
 - `pageSize` (number, optional, default 24, max 100)
 
 Behavior:
-- Returns candidates ranked against the job's `mustHaveSkills` and
-  `niceToHaveSkills`. Filters out non-public candidates.
+- SEMANTICALLY ranks interviewed (embedding-gated, discoverable) candidates
+  against the job's requirements and returns a per-candidate fit score
+  (`matchScore`). Every interviewed candidate is discoverable — no privacy gate.
 - Includes any existing application overlay (`applicationStatus`,
   `invitedAt`) when the candidate already touches this job.
 
@@ -231,7 +232,9 @@ Returns:
 
 Errors:
 - `INVALID_INPUT: jobId is required`
-- `NOT_FOUND: <jobId>` (collapsed NOT_FOUND | FORBIDDEN)
+- `NOT_FOUND: <jobId>` (collapsed NOT_FOUND | FORBIDDEN — no existence leak)
+- `NOT_INDEXED: <jobId>` / `NO_CATEGORIES: <jobId>` — the job isn't indexed for
+  semantic search yet; re-save or republish it to index it, then retry
 
 Agent guidance:
 - Use `applicationStatus` overlay to skip already-applied/invited
@@ -241,12 +244,16 @@ Agent guidance:
 
 Inputs:
 - `apiKey` (optional)
-- `query` (string, required) — free-form skill/title query
+- `query` (string, required, max 512 chars) — free-form natural-language
+  description of who you're looking for (skills, role, stack)
 - `page` (number, optional), `pageSize` (number, optional)
 
 Behavior:
-- Returns candidates matching the query terms. No job context → no
-  match metadata.
+- SEMANTIC similarity search: the query is embedded and interviewed
+  (embedding-gated, discoverable) candidates are ranked by closeness to it.
+  No job context → this is a PRELIMINARY search with NO per-vacancy fit
+  score and no match metadata. For a scored ranking, use
+  `employer.search_candidates_for_job` with a job id.
 
 Returns:
 - `ok: true`
@@ -317,13 +324,15 @@ Returns:
 
 Errors:
 - `INVALID_INPUT: jobId is required` / `candidateUserId is required`
-- `INVITE_BLOCKED: <reason>` — 7 sub-reasons:
-  - `JOB_NOT_FOUND`
-  - `FORBIDDEN` (job owned by a different employer)
-  - `JOB_NOT_PUBLISHED`
+- `INVITE_BLOCKED: <reason>` — 5 sub-reasons:
+  - `JOB_NOT_FOUND` (job missing OR owned by a different employer — the
+    two collapse so you cannot probe foreign jobIds; anti-enumeration)
+  - `JOB_NOT_PUBLISHED` (your job is in DRAFT/CLOSED/ARCHIVED)
   - `CANDIDATE_NOT_FOUND` (user missing or role ≠ CANDIDATE)
-  - `PRIVACY_NOT_PUBLIC` (candidate has opted out of discovery)
-  - `PROFILE_MISSING` (no `CandidateMatchingProfile`)
+  - `NOT_DISCOVERABLE` (candidate is not in the searchable pool — no
+    completed-and-ingested profile interview, so no embedding to match.
+    Every interviewed candidate is discoverable; there is NO privacy opt-out
+    gate)
   - `INVITE_NOT_ALLOWED` (existing INVITED/APPLIED/DECLINED row)
 
 Agent guidance:

@@ -9,3 +9,6 @@ dist/
 tmp/
 *.tgz
 
+
+# Agent task diaries (local, never committed)
+.tasks/

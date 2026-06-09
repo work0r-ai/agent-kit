@@ -14,17 +14,17 @@ For normal job-search requests, do not run raw `curl` or JSON-RPC checks before 
 
 ## Tool Visibility
 
-Modern WorkorAI MCP exposes ALL 21 tools in an anonymous `tools/list`:
-`request_access`, the two candidate tools, and all 18 `employer.*`
+Modern WorkorAI MCP exposes ALL 28 tools in an anonymous `tools/list`:
+`request_access`, the 9 candidate tools, and all 18 `employer.*`
 tools — visible-but-gated. Visibility is discovery (so MCP clients
 register the names); authorization is enforced per call. A tool in the
 list is not proof the current caller can invoke it.
 
-If only `request_access` (or only the 3 candidate-era tools) is
+If only `request_access` (or only the 2–3 candidate-era tools) is
 visible, the client is connected to an OLDER deployment that predates
-the visible-but-gated employer surface, or the session is stale —
-reconnect to the latest deployment. This is a version issue, not a key
-issue.
+the visible-but-gated employer surface or the expanded candidate
+surface, or the session is stale — reconnect to the latest deployment.
+This is a version issue, not a key issue.
 
 If tools are visible but a call fails auth, common reasons:
 - no Bearer key was sent
@@ -70,8 +70,12 @@ If OS secret storage fails:
 All tools are visible-but-gated in an anonymous `tools/list`; the
 key determines what can be *called*, not what is *listed*:
 - Public (always callable): `request_access`
-- Candidate (visible to all, callable with a candidate key):
-  `candidate.search_jobs`, `candidate.get_job`
+- Candidate (visible to all, callable with a candidate key): 9 tools —
+  `candidate.search_jobs`, `candidate.get_job`, `candidate.get_applications`,
+  `candidate.apply_to_job`, `candidate.accept_invitation`,
+  `candidate.decline_invitation`, `candidate.withdraw_application`,
+  `candidate.set_saved_job`, `candidate.get_saved_jobs` — see
+  `candidate-catalog.md`
 - Employer (visible to all, callable with an EMPLOYER key): 18 tools —
   see `employer-catalog.md`
 
@@ -85,12 +89,12 @@ If a candidate-scoped key sees employer tools (or vice versa), the server is mis
 
 ## Missing Match Metadata
 
-`candidate.search_jobs` should return match fields on each job:
+`candidate.search_jobs` returns these per-job fields:
 - `matchScore`
 - `matchedMustHaveSkills`
 - `matchedNiceToHaveSkills`
 - `missingMustHaveSkills`
-- `seniorityFit`
-- `matchReasons`
+- `seniorityFit` — `UNKNOWN` under semantic ranking (populated only on the keyword/`q` fallback)
+- `matchReasons` — empty `[]` under semantic ranking (populated only on the keyword/`q` fallback)
 
-If these are missing, the client may be reading stale cached output, using an unauthenticated session that cannot call the real tool, or connected to an older MCP deployment.
+If `matchScore` or the skill arrays are missing, the client may be reading stale cached output, using an unauthenticated session that cannot call the real tool, or connected to an older MCP deployment.
