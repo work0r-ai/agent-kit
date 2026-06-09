@@ -2,6 +2,25 @@
 
 All notable changes to `@workorai/agent-kit` are documented here.
 
+## 0.3.1 - 2026-06-09
+
+- Full candidate MCP surface (9 tools): `candidate.search_jobs`, `get_job`,
+  `get_applications`, `apply_to_job`, `accept_invitation`,
+  `decline_invitation`, `withdraw_application`, `set_saved_job`,
+  `get_saved_jobs`. New `candidate-recipes.md` + `candidate-troubleshooting.md`;
+  `auth-flow.md` access states expanded to the 7 runtime states (adds
+  `EVALUATION_FAILED`; the gate is the fact of a completed + evaluated
+  interview, no score threshold).
+- Employer accuracy sweep: `invite_candidate` block reasons reconciled to the
+  runtime set (`JOB_NOT_FOUND` / `JOB_NOT_PUBLISHED` / `CANDIDATE_NOT_FOUND` /
+  `NOT_DISCOVERABLE` / `INVITE_NOT_ALLOWED`); `PRIVACY_NOT_PUBLIC` +
+  `PROFILE_MISSING` collapsed to `NOT_DISCOVERABLE`. Anonymous `tools/list` is
+  28 tools (1 + 9 candidate + 18 employer).
+- Reconcile `candidate.search_jobs` docs to the semantic runtime: a free-text
+  `q` or a not-yet-interviewed candidate returns a no-score recency BROWSE
+  (`matchScore` is `null`), not a keyword matcher; `seniorityFit` is always
+  `UNKNOWN` and `matchReasons` always `[]`.
+
 ## 0.3.0 - 2026-05-29
 
 - Live employer MCP surface support: 18 tools across job lifecycle
