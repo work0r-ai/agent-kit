@@ -82,7 +82,8 @@ Behavior:
 - Returns published jobs only, SEMANTICALLY ranked for the authenticated
   candidate (embedding-based fit against their evaluated interview).
 - A free-text `q`, OR a candidate who has not completed an interview yet,
-  falls back to the deterministic keyword matcher (still returns scores).
+  instead BROWSES published jobs by recency — those rows carry NO fit score
+  (`matchScore` is `null`); treat them as a browse list, not a ranking.
 
 Returns:
 - `ok: true`
@@ -90,9 +91,10 @@ Returns:
 - `page: { total, limit, offset, hasMore }`
 - `jobs: MatchedJob[]` — each is a full job (see `get_job` fields) PLUS:
   `matchScore`, `matchedMustHaveSkills[]`, `matchedNiceToHaveSkills[]`,
-  `missingMustHaveSkills[]`, `seniorityFit`, `matchReasons[]`. Under
-  semantic ranking `seniorityFit` is `UNKNOWN` and `matchReasons` is `[]`
-  (the combiner does not synthesize them — the keyword fallback fills both).
+  `missingMustHaveSkills[]`, `seniorityFit`, `matchReasons[]`. `seniorityFit`
+  is ALWAYS `UNKNOWN` and `matchReasons` ALWAYS `[]` (the combiner has no
+  seniority signal; nothing synthesizes them). `matchScore` is a number on the
+  ranked path and `null` on the recency browse (`q` / no-interview).
 
 Agent guidance:
 - Explain recommendations from `matchScore` + matched/missing skills.

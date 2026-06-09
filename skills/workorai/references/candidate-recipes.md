@@ -40,9 +40,10 @@ Guidance:
 - Filters are enums: `workModel ∈ {REMOTE, HYBRID, ON_SITE}`,
   `seniority ∈ {INTERN, JUNIOR, MIDDLE, SENIOR, LEAD, PRINCIPAL}`,
   `jobType ∈ {FULL_TIME, PART_TIME, CONTRACT, FREELANCE}`.
-- Passing a free-text `q` switches ranking to the keyword fallback (which
-  DOES populate `seniorityFit` + `matchReasons`). Without `q`, ranking is
-  semantic and those two fields are `UNKNOWN`/`[]`.
+- Passing a free-text `q` (or having no completed interview) switches from
+  semantic ranking to a recency BROWSE with NO fit score (`matchScore` is
+  `null`). `seniorityFit` is always `UNKNOWN` and `matchReasons` always `[]`
+  on BOTH paths (the combiner has no seniority signal).
 - Page with `offset` + `page.hasMore`; don't refetch page 0.
 
 ## Recipe 3 — Gap analysis

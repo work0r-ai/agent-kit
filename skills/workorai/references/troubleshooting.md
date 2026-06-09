@@ -94,7 +94,11 @@ If a candidate-scoped key sees employer tools (or vice versa), the server is mis
 - `matchedMustHaveSkills`
 - `matchedNiceToHaveSkills`
 - `missingMustHaveSkills`
-- `seniorityFit` — `UNKNOWN` under semantic ranking (populated only on the keyword/`q` fallback)
-- `matchReasons` — empty `[]` under semantic ranking (populated only on the keyword/`q` fallback)
+- `seniorityFit` — always `UNKNOWN` (the combiner has no seniority signal)
+- `matchReasons` — always `[]` (nothing synthesizes them)
+
+NOTE: a free-text `q` or a not-yet-interviewed candidate returns a recency
+BROWSE with `matchScore: null` (no fit score) — a browse list, not a scored
+ranking. A `null` `matchScore` on that path is correct, not a bug.
 
 If `matchScore` or the skill arrays are missing, the client may be reading stale cached output, using an unauthenticated session that cannot call the real tool, or connected to an older MCP deployment.

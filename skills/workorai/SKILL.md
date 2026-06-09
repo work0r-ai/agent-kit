@@ -99,8 +99,9 @@ schema/recipe detail to the `references/` files.
   (`jobUrl`/`url`) and apply (`applicationUrl`/`applyUrl`). Never show
   apply-only.
 - Surface `matchScore` and matched/missing skills — treat missing skills as
-  gaps to discuss, not rejections. (`matchReasons` is empty under semantic
-  ranking; it's populated only on the keyword/`q` fallback.)
+  gaps to discuss, not rejections. (`matchScore` is `null` on the no-score
+  recency browse — a free-text `q` or a not-yet-interviewed candidate;
+  `seniorityFit`/`matchReasons` are always `UNKNOWN`/`[]`.)
 - Treat raw `jobId` as internal/debug metadata unless the user asks
   for it.
 - Mini-schemas: `references/candidate-catalog.md`. Recipes:

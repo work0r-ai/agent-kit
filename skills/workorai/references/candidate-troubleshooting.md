@@ -78,8 +78,9 @@ Fix:
 
 Cause: ranking is SEMANTIC only when the candidate has a completed +
 evaluated profile interview. Without one — or when a free-text `q` is passed
-— `search_jobs` falls back to the deterministic keyword matcher. It still
-returns scores, but they are not personalized to the candidate's interview.
+— `search_jobs` instead BROWSES published jobs by recency. Those rows carry NO
+fit score (`matchScore` is `null`) — they are a browse list, not a personalized
+ranking. There is no keyword scorer (the lexical matcher was retired).
 
 Fix: explain that personalized ranking needs a finished profile interview
 (`auth-flow.md` onboarding). The same gate blocks `apply_to_job` until the
