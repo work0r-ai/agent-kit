@@ -1,6 +1,6 @@
 # Employer Catalog
 
-Mini-schemas for the 18 employer tools in the WorkorAI MCP surface.
+Mini-schemas for the 19 employer tools in the WorkorAI MCP surface.
 
 Each tool here mirrors the runtime `outputSchema` exposed by the MCP
 server (see WorkorAI repo `mcp/src/tools/shared/{employer-applications,
@@ -24,10 +24,11 @@ Jobs lifecycle (8):
 - `employer.archive_job`
 - `employer.delete_job`
 
-Candidate discovery (3):
+Candidate discovery (4):
 - `employer.search_candidates_for_job`
 - `employer.search_candidates_by_query`
 - `employer.get_candidate`
+- `employer.get_candidate_evidence`
 
 Invitations (3):
 - `employer.invite_candidate`
@@ -211,24 +212,40 @@ Inputs:
 - `apiKey` (optional)
 - `jobId` (string, required)
 - `sort` (`bestMatch` | `newest`, optional, default `bestMatch`)
+- `tier` (`best` | `good` | `weak`, optional) — match-quality band filter. OMIT
+  for the full ranked pool (back-compat). To shortlist, START with `tier:'best'`
+  and cascade to `good` then `weak` ONLY if you need more — read `tierCounts` to
+  decide. (Ignored on `sort:'newest'` — a recency browse has no bands.)
 - `page` (number, optional, default 1)
 - `pageSize` (number, optional, default 24, max 100)
 
 Behavior:
 - SEMANTICALLY ranks interviewed (embedding-gated, discoverable) candidates
   against the job's requirements and returns a per-candidate fit score
-  (`matchScore`). Every interviewed candidate is discoverable — no privacy gate.
+  (`matchScore`) AND a white-box `matchExplanation` (the "why"). Every
+  interviewed candidate is discoverable — no privacy gate.
 - Includes any existing application overlay (`applicationStatus`,
   `invitedAt`) when the candidate already touches this job.
 
 Returns:
 - `ok: true`
 - `jobId: string`
-- `page: { total, page, pageSize }`
+- `page: { total, page, pageSize, hasMore }` — on a `tier`-filtered call `total`
+  is the FULL pool; paginate WITHIN the band using `hasMore` (not `total`).
+- `tierCounts: { matched, unmatched, best, good, weak }` — band sizes to plan the
+  cascade. `matched` = cover ≥1 required skill, `unmatched` = none;
+  `best+good+weak === matched` on a scored search (all bands 0 on a newest browse).
 - `entries: CandidateEntry[]` where each entry has: `id, displayName,
   avatarUrl, headline, location, seniority, summary, skills[],
   matchScore, matchedMustHaveSkills[], missingMustHaveSkills[],
-  applicationStatus?, invitedAt?`
+  matchExplanation?, applicationStatus?, invitedAt?`
+- `matchExplanation` (scored rows only) = `{ score, interviewScore|null,
+  reliability, similarity, mustCoverage, matchedMust[], missingMust[],
+  niceCoverage, matchedNice[], missingNice[], verifiedSkills[], verifiedUplift,
+  web3Bonus, reliabilitySource, reliabilityValue, rationale }`.
+  `verifiedSkills` = skills the candidate PROVED in their interview (lead your
+  explanation with these; empty ≠ no interview — check `interviewScore`).
+  `rationale` = a ready-to-quote plain-English sentence.
 
 Errors:
 - `INVALID_INPUT: jobId is required`
@@ -237,7 +254,13 @@ Errors:
   semantic search yet; re-save or republish it to index it, then retry
 
 Agent guidance:
-- Use `applicationStatus` overlay to skip already-applied/invited
+- To find the best hire: (1) `tier:'best'` for the strongest candidates, cascade
+  via `tierCounts`; (2) explain your shortlist from each `matchExplanation` —
+  cite `verifiedSkills` (proven in interview), `matchedMust`/`missingMust`, and
+  the `rationale` — this is our white-box evidence, not a black box; (3) for the
+  few you shortlist, call `employer.get_candidate_evidence(jobId, userId)` for the
+  interview facts + Q&A to write a deeper comparative review.
+- Use the `applicationStatus` overlay to skip already-applied/invited
   candidates when running a bulk invite.
 
 ### `employer.search_candidates_by_query`
@@ -300,6 +323,42 @@ Agent guidance:
   - DECLINED: terminal — do not re-invite.
   - INVITED: already pending, do nothing.
   - APPLIED: already in funnel, route to `list_applicants` not invite.
+
+### `employer.get_candidate_evidence`
+
+Inputs: `apiKey` (optional), `jobId` (string, required), `userId` (string, required).
+
+Behavior:
+- JOB-SCOPED interview EVIDENCE for ONE candidate against ONE of your published
+  jobs — the white-box basis to explain WHY a candidate ranks where they do. Use
+  it AFTER `search_candidates_for_job`: shortlist with the scorecard, then read the
+  evidence here for the few you care about and write your own comparative review.
+- Same data + gate as the in-app deep review (you must OWN the PUBLISHED job; the
+  candidate must be in that job's searchable pool). The candidate-authored text is
+  size-budgeted + sanitized.
+
+Returns:
+- `ok: true`
+- `evidence: { candidateId, headline, resumeSummary, experienceYears,
+  facts[], interview, github, linkedin, truncation[] }`
+  - `facts: { claim, factScore, mustLinked, qas: { question, answer }[] }[]` —
+    what the candidate claimed + the interview Q&A behind it; `mustLinked` flags a
+    fact tied to one of THIS job's required skills.
+  - `interview: { interviewId, overallScore, summary } | null` (null = no
+    evaluated interview → `facts` is `[]`).
+  - `github: { trustRank, web3Repos, mergedPrestigeLanguages[] } | null`,
+    `linkedin: { historyCoherence, recognizedCerts } | null`.
+  - `truncation[]` — which sections were budget-trimmed (be honest about gaps).
+
+Errors:
+- `INVALID_INPUT: jobId and userId are required`
+- `NOT_FOUND: <userId>` (collapsed: missing/foreign/unpublished job OR the
+  candidate is not in that job's searchable pool — no existence leak)
+
+Agent guidance:
+- This is the heavy artefact: call it ONLY for the handful you shortlisted from
+  `search_candidates_for_job` (not the whole list). Ground your verdict in the
+  `facts`/`qas` + the `matchExplanation` from the search row.
 
 ## Invitations
 

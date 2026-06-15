@@ -74,27 +74,38 @@ Inputs:
 - `workModel` (`REMOTE | HYBRID | ON_SITE`, optional)
 - `seniority` (`INTERN | JUNIOR | MIDDLE | SENIOR | LEAD | PRINCIPAL`, optional)
 - `jobType` (`FULL_TIME | PART_TIME | CONTRACT | FREELANCE`, optional)
+- `tier` (`best | good | weak`, optional) — match-quality band. OMIT for the full
+  ranked list; start with `tier:'best'` for the strongest fits and cascade to
+  `good`/`weak` only if needed (read `tierCounts`). Ignored on a free-text `q` /
+  no-interview browse (no bands).
 - `limit` (number, optional, default 20, max 100)
 - `offset` (number, optional, default 0)
 
 Behavior:
 - Requires an authenticated candidate session or a valid `apiKey`.
 - Returns published jobs only, SEMANTICALLY ranked for the authenticated
-  candidate (embedding-based fit against their evaluated interview).
+  candidate (embedding-based fit against their evaluated interview), with a
+  per-job `matchExplanation` (the white-box "why").
 - A free-text `q`, OR a candidate who has not completed an interview yet,
   instead BROWSES published jobs by recency — those rows carry NO fit score
-  (`matchScore` is `null`); treat them as a browse list, not a ranking.
+  (`matchScore` is `null`, no bands); treat them as a browse list, not a ranking.
 
 Returns:
 - `ok: true`
-- `filters: { q?, workModel?, seniority?, jobType?, limit, offset }`
+- `filters: { q?, workModel?, seniority?, jobType?, tier?, limit, offset }`
 - `page: { total, limit, offset, hasMore }`
+- `tierCounts: { matched, unmatched, best, good, weak }` — band sizes for the
+  cascade (all 0 on a `q` / no-interview browse).
 - `jobs: MatchedJob[]` — each is a full job (see `get_job` fields) PLUS:
-  `matchScore`, `matchedMustHaveSkills[]`, `matchedNiceToHaveSkills[]`,
-  `missingMustHaveSkills[]`, `seniorityFit`, `matchReasons[]`. `seniorityFit`
-  is ALWAYS `UNKNOWN` and `matchReasons` ALWAYS `[]` (the combiner has no
-  seniority signal; nothing synthesizes them). `matchScore` is a number on the
-  ranked path and `null` on the recency browse (`q` / no-interview).
+  `matchScore`, `matchExplanation?`, `matchedMustHaveSkills[]`,
+  `matchedNiceToHaveSkills[]`, `missingMustHaveSkills[]`, `seniorityFit`,
+  `matchReasons[]`. `seniorityFit` is ALWAYS `UNKNOWN` and `matchReasons` ALWAYS
+  `[]` (the combiner has no seniority signal). `matchScore` is a number on the
+  ranked path and `null` on the recency browse. `matchExplanation` (scored rows
+  only) = `{ score, interviewScore|null, reliability, similarity, mustCoverage,
+  matchedMust[], missingMust[], niceCoverage, matchedNice[], missingNice[],
+  verifiedSkills[], verifiedUplift, web3Bonus, reliabilitySource,
+  reliabilityValue, rationale }`.
 
 Agent guidance:
 - Explain recommendations from `matchScore` + matched/missing skills.

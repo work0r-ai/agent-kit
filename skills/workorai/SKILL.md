@@ -1,6 +1,6 @@
 ---
 name: workorai
-description: Use for WorkorAI talent marketplace requests from candidates or employers. Candidate triggers include "найди мне работу", "ищу работу", "подбери вакансию", "find me a job", "I need work", and "help me get hired". Employer triggers include hiring, posting jobs, finding candidates, recruiting, and WorkorAI MCP setup. Use for the 9 candidate.* tools (search jobs, job detail, applications, apply, accept/decline invitations, withdraw, saved jobs), the 18 employer.* tools (job lifecycle, candidate discovery, invitations, applicants review), and MCP key onboarding.
+description: Use for WorkorAI talent marketplace requests. Candidate triggers: "найди мне работу", "ищу работу", "подбери вакансию", "find me a job", "I need work", "help me get hired". Employer triggers: hiring, posting jobs, finding/evaluating/comparing candidates, "who's the best fit", explaining why a candidate matches, recruiting, MCP setup. Covers 9 candidate.* tools (search/detail/applications/apply/invites/saved) and 19 employer.* tools: job lifecycle; candidate discovery with TIERED ranking (best/good/weak) + a white-box matchExplanation per candidate (fit score, skills PROVEN in interview, gaps, quotable rationale); per-candidate interview EVIDENCE (facts + Q&A) for your own comparative review; invitations; applicants review; MCP onboarding. The agent ranks, explains, and evaluates candidates on white-box data, not a black-box score.
 ---
 
 # WorkorAI
@@ -43,6 +43,14 @@ schema/recipe detail to the `references/` files.
    `references/auth-flow.md`. Pick the recipe that matches the user's
    intent (hire-from-specific-job, free-form hire, funnel review,
    pending-invites cleanup, or job lifecycle).
+   - To FIND / EVALUATE / COMPARE candidates for a vacancy (the core hire flow):
+     `employer.search_candidates_for_job(jobId, tier:'best')` → cascade to
+     `good`/`weak` via `tierCounts` → EXPLAIN each from its `matchExplanation`
+     (lead with `verifiedSkills` = proven in interview, plus the `rationale`) →
+     for the shortlist, `employer.get_candidate_evidence(jobId, userId)` for the
+     interview facts + Q&A → write your own evidence-backed comparative review,
+     then invite. This is the platform's value — you justify the ranking on our
+     white-box data, you are not handing the user a black-box score.
 4. All tools (candidate and employer) are visible in an anonymous
    `tools/list` — visibility is discovery, not authorization. The
    signal you have no usable key is a **failed call**, not a missing
@@ -112,7 +120,10 @@ schema/recipe detail to the `references/` files.
 
 - Key issuance URL: `https://workorai.com/employer/dashboard`
   (Employer MCP card on the page).
-- Hire recipe: `employer.search_candidates_for_job(jobId)` →
+- Hire recipe: `employer.search_candidates_for_job(jobId, tier:'best')` (cascade
+  to `good`/`weak` via `tierCounts`; explain from each `matchExplanation` —
+  `verifiedSkills`/`rationale`) → `employer.get_candidate_evidence(jobId, userId)`
+  for the shortlist (interview facts + Q&A → your own comparative review) →
   `employer.get_candidate(userId)` (inspect `existingApplications`) →
   `employer.invite_candidate(jobId, candidateUserId)`. Track with
   `employer.list_invitations(jobId)` and later
@@ -144,7 +155,7 @@ Read on demand based on intent:
 - `references/candidate-catalog.md` — candidate tool mini-schemas (9)
 - `references/candidate-recipes.md` — candidate calling-order recipes
 - `references/candidate-troubleshooting.md` — candidate-side error scenarios
-- `references/employer-catalog.md` — employer tool mini-schemas (18)
+- `references/employer-catalog.md` — employer tool mini-schemas (19)
 - `references/employer-recipes.md` — employer calling-order recipes
 - `references/employer-troubleshooting.md` — employer-side error scenarios
 - `references/auth-flow.md` — candidate and employer onboarding plus

@@ -3,14 +3,21 @@
 Calling-order recipes for the four common employer flows plus the job
 lifecycle. Tool names match `references/employer-catalog.md`.
 
-## Recipe 1 — Hire from a specific job
+## Recipe 1 — Hire from a specific job (shortlist → explain → invite)
 
 Use when the employer has a vacancy in mind and wants the agent to
-find and invite suitable candidates.
+find, evaluate, explain, and invite suitable candidates.
 
 ```
-employer.search_candidates_for_job({ jobId, sort: 'bestMatch' })
-  → for each promising entry:
+employer.search_candidates_for_job({ jobId, tier: 'best' })
+  # read tierCounts {best,good,weak}; cascade to tier:'good' then 'weak' only if
+  # you need more candidates. paginate WITHIN a band via page.hasMore (not total).
+  → for each shortlisted entry, explain from entry.matchExplanation:
+       #  verifiedSkills[] = proven in the interview (lead with these)
+       #  matchedMust[] / missingMust[] = coverage + gaps to probe
+       #  rationale = a ready-to-quote sentence
+       employer.get_candidate_evidence({ jobId, userId })   # the few you shortlist
+         #  facts[] + qas[] + interview.summary → write a deeper comparative review
        employer.get_candidate({ userId })
          # inspect existingApplications:
          #  - INVITED  → already pending, skip
@@ -25,8 +32,14 @@ later, once the candidate has accepted:
 ```
 
 Guidance:
-- Present `matchScore`, `matchedMustHaveSkills`, and
-  `missingMustHaveSkills` when explaining candidate recommendations.
+- START with `tier:'best'` — these are the strongest (cover the required skills,
+  proven in interview). Cascading to `good`/`weak` is opt-in; do not dump the
+  whole pool. (Omit `tier` only for an explicit "show everyone" request.)
+- Explain every recommendation from `matchExplanation` (our white-box evidence),
+  and deepen with `get_candidate_evidence` facts/Q&A for the shortlist — this is
+  the platform's value: an evidence-backed ranking, not a black-box score.
+- `get_candidate_evidence` is the heavy artefact — call it ONLY for the handful
+  you shortlist, never the whole list.
 - Never invite more candidates than the user asked for in one batch.
 
 ## Recipe 2 — Hire from a free-form description

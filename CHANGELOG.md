@@ -2,6 +2,29 @@
 
 All notable changes to `@workorai/agent-kit` are documented here.
 
+## 0.4.0 - 2026-06-15
+
+- Tier band filter + white-box explainability on the candidate-search tools
+  (WorkorAI MCP T3b — pairs with the matching server `outputSchema`; both layers
+  move together):
+  - `employer.search_candidates_for_job` + `candidate.search_jobs` gain an opt-in
+    `tier` (`best | good | weak`); OMIT for the full ranked pool (back-compatible,
+    no behavior change for existing callers). New additive
+    `tierCounts: { matched, unmatched, best, good, weak }`. Each scored row now
+    carries `matchExplanation` — the white-box "why" (fit score, the skills the
+    candidate PROVED in their interview, matched/missing, reliability, and a
+    ready-to-quote rationale). The reverse `page` gains `hasMore` (paginate WITHIN
+    a band, not by the full-pool `total`).
+  - NEW `employer.get_candidate_evidence(jobId, userId)` — job-scoped interview
+    evidence (facts + Q&A + résumé summary + GitHub/LinkedIn signals) for one
+    candidate; the basis for an agent to write its own comparative review. Gated
+    on owning the PUBLISHED job + the candidate being in its searchable pool (same
+    gate as the in-app deep review — no widened exposure).
+- Recommended agent workflow: `search_candidates_for_job(tier:'best')` → cascade
+  via `tierCounts` → explain from `matchExplanation` → `get_candidate_evidence`
+  for the shortlist.
+- Anonymous `tools/list` is now 29 tools (1 + 9 candidate + 19 employer).
+
 ## 0.3.1 - 2026-06-09
 
 - Full candidate MCP surface (9 tools): `candidate.search_jobs`, `get_job`,
