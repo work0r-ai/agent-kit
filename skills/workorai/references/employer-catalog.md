@@ -235,6 +235,12 @@ Returns:
 - `tierCounts: { matched, unmatched, best, good, weak }` — band sizes to plan the
   cascade. `matched` = cover ≥1 required skill, `unmatched` = none;
   `best+good+weak === matched` on a scored search (all bands 0 on a newest browse).
+- `advisory?: { code: 'EMPTY_BEST_REVIEW_MUST_HAVES', message }` — OPTIONAL,
+  present ONLY when NO candidate reached the Best tier (`tierCounts.best === 0`)
+  but candidates exist below. The vacancy's must-have requirements may be strict
+  enough that nobody is an exceptional match. RELAY `message` to the employer as a
+  suggestion — they may move the less-critical must-haves to nice-to-have to widen
+  the pool. A SUGGESTION only; never auto-edit the job.
 - `entries: CandidateEntry[]` where each entry has: `id, displayName,
   avatarUrl, headline, location, seniority, summary, skills[],
   matchScore, matchedMustHaveSkills[], missingMustHaveSkills[],
@@ -262,6 +268,11 @@ Agent guidance:
   interview facts + Q&A to write a deeper comparative review.
 - Use the `applicationStatus` overlay to skip already-applied/invited
   candidates when running a bulk invite.
+- If `tier:'best'` (or `tierCounts.best`) is empty but candidates exist below,
+  there is no exceptional match for this vacancy. Surface the `advisory` (or, if
+  absent, say so plainly) and suggest the employer review the must-have skills —
+  moving the less-critical ones to nice-to-have widens the search. Do NOT promote
+  a Good/Weak candidate as if they were a Best.
 
 ### `employer.search_candidates_by_query`
 

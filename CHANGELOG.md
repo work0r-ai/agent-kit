@@ -2,6 +2,16 @@
 
 All notable changes to `@workorai/agent-kit` are documented here.
 
+## 0.4.1 - 2026-06-15
+
+- Document the empty-Best advisory (WorkorAI MCP M4): `employer.search_candidates_for_job`
+  now returns an optional `advisory { code: 'EMPTY_BEST_REVIEW_MUST_HAVES', message }`
+  when no candidate reaches the Best tier (`tierCounts.best === 0`) but candidates exist
+  below. The agent relays it — suggest the employer move less-critical must-have skills to
+  nice-to-have to widen the search. A suggestion only; never auto-edits the job, and a
+  Good/Weak candidate is never re-labeled as Best. Docs-only; pairs with the matching
+  server M4 change. Back-compat (absent `advisory` = no change for 0.4.0 clients).
+
 ## 0.4.0 - 2026-06-15
 
 - Tier band filter + white-box explainability on the candidate-search tools

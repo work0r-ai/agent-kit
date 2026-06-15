@@ -12,6 +12,9 @@ find, evaluate, explain, and invite suitable candidates.
 employer.search_candidates_for_job({ jobId, tier: 'best' })
   # read tierCounts {best,good,weak}; cascade to tier:'good' then 'weak' only if
   # you need more candidates. paginate WITHIN a band via page.hasMore (not total).
+  # if tierCounts.best === 0 (no exceptional match) the result carries `advisory` —
+  #   relay it: suggest the employer review/relax the must-have skills. do NOT
+  #   present a Good/Weak candidate as a Best.
   → for each shortlisted entry, explain from entry.matchExplanation:
        #  verifiedSkills[] = proven in the interview (lead with these)
        #  matchedMust[] / missingMust[] = coverage + gaps to probe
@@ -40,6 +43,10 @@ Guidance:
   the platform's value: an evidence-backed ranking, not a black-box score.
 - `get_candidate_evidence` is the heavy artefact — call it ONLY for the handful
   you shortlist, never the whole list.
+- Empty Best (`tierCounts.best === 0`) is an honest signal, not an error: the
+  vacancy's requirements are strict. Relay the returned `advisory` (suggest moving
+  less-critical must-haves to nice-to-have) and work from the Good band — never
+  re-label a Good/Weak candidate as Best.
 - Never invite more candidates than the user asked for in one batch.
 
 ## Recipe 2 — Hire from a free-form description
