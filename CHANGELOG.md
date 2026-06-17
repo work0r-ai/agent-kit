@@ -2,6 +2,32 @@
 
 All notable changes to `@workorai/agent-kit` are documented here.
 
+## 0.4.2 - 2026-06-17
+
+- Candidate first-touch: warmer, value-first onboarding. `auth-flow.md`
+  "What To Say First (Candidate)" is reframed from a dry checklist into a
+  career-agent persona that leads with value (mirror the user's language),
+  keeping the same onboarding steps. Adds an honest, dosed key-safety
+  treatment — a one-line note in the hello plus a full "What is this key?"
+  reply: the `wai_` key is a bearer secret (treat it like a password), works
+  only inside WorkorAI, is shown once at generation, and a fresh key revokes
+  the old one; an anti-phishing red flag for any non-WorkorAI prompt asking for
+  it. Plus a value-framed "why only WorkorAI?" reply that keeps the in-platform
+  flow without sounding like a refusal. Full step transparency (developer tool —
+  it never hides what it runs; only the key VALUE is never printed).
+- Candidate result presentation: new `candidate-recipes.md` Recipe 6
+  ("Present results — Agent Pick"). The strongest scored match is shown as an
+  Agent Pick with fit bars bound to REAL `matchExplanation` fields (overall
+  score, must/nice coverage, verified-in-interview skills, gap, rationale) —
+  no fabricated axes (seniority/salary/remote/company-fit and "chance to get
+  hired %" are dropped; `seniorityFit` is always `UNKNOWN`). The per-row band
+  word (Best/Good/Weak) shows only when a `tier` was queried, never recomputed
+  from a threshold. No-score browse (`matchScore: null`) renders a plain list
+  with no bars, message split by cause (finish your interview vs. drop the
+  free-text `q`).
+- Docs/skill-copy only — no tool, schema, or runtime change; fully
+  back-compatible.
+
 ## 0.4.1 - 2026-06-15
 
 - Document the empty-Best advisory (WorkorAI MCP M4): `employer.search_candidates_for_job`

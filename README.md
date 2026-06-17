@@ -58,6 +58,8 @@ find me a job
 - `skills/workorai/agents/openai.yaml` - Codex/OpenAI-style UI metadata.
 - `skills/workorai/references/`
   - `candidate-catalog.md` - candidate tool mini-schemas
+  - `candidate-recipes.md` - candidate calling-order recipes (incl. the Agent Pick result presentation)
+  - `candidate-troubleshooting.md` - candidate-side error scenarios
   - `employer-catalog.md` - 18 employer tool mini-schemas
   - `employer-recipes.md` - hire / review / lifecycle recipes
   - `employer-troubleshooting.md` - employer-side error scenarios
