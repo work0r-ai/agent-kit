@@ -38,6 +38,11 @@ schema/recipe detail to the `references/` files.
    candidate flow: discover (`candidate.search_jobs` → `candidate.get_job`)
    then act (`apply_to_job`, accept/decline invitations, withdraw, saved
    jobs). Edge cases: `references/candidate-troubleshooting.md`.
+   - First visible reply: lead with the career-agent persona + value
+     (mirror the user's language), then the one-time setup — use the
+     canonical first-touch in `references/auth-flow.md` ("What To Say
+     First (Candidate)"). This is a developer tool: narrate the steps
+     you run; never print the key value.
 3. **Employer intent**: read `references/employer-catalog.md`,
    `references/employer-recipes.md`, and the employer sections of
    `references/auth-flow.md`. Pick the recipe that matches the user's
