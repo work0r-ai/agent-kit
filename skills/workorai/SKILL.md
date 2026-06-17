@@ -115,6 +115,9 @@ schema/recipe detail to the `references/` files.
   gaps to discuss, not rejections. (`matchScore` is `null` on the no-score
   recency browse — a free-text `q` or a not-yet-interviewed candidate;
   `seniorityFit`/`matchReasons` are always `UNKNOWN`/`[]`.)
+- Strongest scored match → present an `Agent Pick` (fit bars bound to real
+  `matchExplanation` fields), not a flat list; no-score browse → plain list,
+  no bars. See `references/candidate-recipes.md` Recipe 6.
 - Treat raw `jobId` as internal/debug metadata unless the user asks
   for it.
 - Mini-schemas: `references/candidate-catalog.md`. Recipes:

@@ -107,3 +107,53 @@ Guidance:
 - `get_saved_jobs` omits jobs that were closed/archived after saving (the
   bookmark persists, the listing filters). A vanished entry = unpublished,
   not unsaved.
+
+## Recipe 6 — Present results (Agent Pick)
+
+Use after `candidate.search_jobs` returns SCORED rows. Don't dump a flat list —
+lead with one strongest `Agent Pick`, then brief secondary matches.
+
+Template (scored rows only):
+
+```md
+Agent verdict: I'd look at <Role> at <Company> first.
+
+⭐ Agent Pick
+<Role> · <Company> · <Salary> · <Remote>      (job facts, not fit %)
+match 88%   (Best)                            (matchScore; band ONLY from the tier you queried, else omit)
+
+Fit Breakdown
+Overall fit        ████████░░  88%            matchExplanation.score
+Must-have skills   █████████░  6/7            count: matchedMust/(matchedMust+missingMust); fill: mustCoverage
+Nice-to-have       ███████░░░  4/6            count: matchedNice/(matchedNice+missingNice); fill: niceCoverage
+Verified in interview: Go, PostgreSQL, gRPC   matchExplanation.verifiedSkills
+
+Why you stand out: …   matchExplanation.matchedMust + verifiedSkills
+Gap to apply: …        matchExplanation.missingMust
+Positioning / Agent view: …   matchExplanation.rationale
+
+[View Role](jobUrl) · [Apply](applicationUrl)
+```
+
+Field rules:
+- Every bar/line binds to a real `matchExplanation` field (present on SCORED
+  rows only). Counts come from the skill arrays (`matched*`/`missing*`), bar
+  fill from the coverage fractions, overall from `score`. No fabricated axis.
+- DROP dims with no backing field: seniority (`seniorityFit` is always
+  `UNKNOWN`), salary-fit, remote-fit, company-fit, "role direction", and any
+  "chance to get hired %". Salary/remote/seniority show as job FACTS only.
+- The per-row band word (`Best`/`Good`/`Weak`) is NOT a serialized field — use
+  it only when you passed a `tier`, else omit. Never recompute it from a
+  hardcoded score threshold.
+
+Honesty-guard (no-score browse):
+- A free-text `q`, or a not-yet-interviewed candidate, returns
+  `matchScore: null` (recency browse, no `matchExplanation`). Show a plain list
+  — NO bars — and say why, split by cause:
+    - no / unevaluated interview → "finish your interview for ranked matches";
+    - free-text `q` on an interviewed candidate → "free-text search browses by
+      recency — drop the query or use the structured filters to get ranked
+      Agent Picks back".
+
+Secondary matches: keep brief — band + match% + one-line why/risk + a compact
+`[View Role](…) · [Apply](…)` line.
