@@ -4,7 +4,7 @@
   "version": "0.4.2",
   "description": "Use WorkorAI talent marketplace MCP tools for candidate job matching and employer hiring workflows (job lifecycle, candidate discovery, invitations, applicants review).",
   "license": "MIT",
-  "repository": "https://github.com/workorai/agent-kit",
+  "repository": "https://github.com/work0r-ai/agent-kit",
   "skillPath": "skills/workorai",
   "npmPackage": "@workorai/agent-kit",
   "categories": [

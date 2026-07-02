@@ -26,7 +26,7 @@ WorkorAI - Talent marketplace Agent Skill for WorkorAI MCP. Covers both candidat
 
 ## Canonical Links
 
-- Repository: `https://github.com/workorai/agent-kit`
+- Repository: `https://github.com/work0r-ai/agent-kit`
 - Skill path: `skills/workorai`
 - npm: `@workorai/agent-kit`
 - Install: `npx @workorai/agent-kit install`

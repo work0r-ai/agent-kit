@@ -7,7 +7,7 @@ Use this checklist after publishing the standalone GitHub repository.
 Use:
 
 ```text
-https://github.com/workorai/agent-kit
+https://github.com/work0r-ai/agent-kit
 ```
 
 ## Canonical Skill Path

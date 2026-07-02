@@ -3,6 +3,10 @@
   "version": "0.4.2",
   "description": "Universal WorkorAI talent marketplace Agent Skill and MCP installer for Codex, Claude Code, OpenCode, Cursor, Qwen Code, Antigravity, Deep Code, and skill registries.",
   "type": "module",
+  "author": {
+    "name": "WorkorAI",
+    "url": "https://workorai.com"
+  },
   "bin": {
     "workorai-agent": "bin/workorai-agent.mjs"
   },
@@ -16,11 +20,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/workorai/agent-kit.git"
+    "url": "git+https://github.com/work0r-ai/agent-kit.git"
   },
-  "homepage": "https://github.com/workorai/agent-kit#readme",
+  "homepage": "https://github.com/work0r-ai/agent-kit#readme",
   "bugs": {
-    "url": "https://github.com/workorai/agent-kit/issues"
+    "url": "https://github.com/work0r-ai/agent-kit/issues"
   },
   "keywords": [
     "agent-skills",
