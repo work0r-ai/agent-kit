@@ -1,0 +1,19 @@
+{
+  "name": "workorai",
+  "owner": {
+    "name": "WorkorAI",
+    "url": "https://workorai.com"
+  },
+  "metadata": {
+    "description": "WorkorAI talent marketplace plugins",
+    "version": "0.4.3"
+  },
+  "plugins": [
+    {
+      "name": "workorai",
+      "source": "./",
+      "description": "WorkorAI talent marketplace skill and MCP server: candidates search and apply to jobs, employers post jobs and discover ranked candidates with white-box match explanations.",
+      "category": "productivity"
+    }
+  ]
+}
