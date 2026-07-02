@@ -1,72 +1,111 @@
 # Skill Hub Submission Checklist
 
-Use this checklist after publishing the standalone GitHub repository.
+Current hub landscape verified July 2026. Ordered by leverage: automatic
+crawlers first (zero submission work), then CLI publishes, then manual
+forms and PRs.
 
-## Repository URL
+## Canonical Facts
 
-Use:
-
-```text
-https://github.com/work0r-ai/agent-kit
-```
-
-## Canonical Skill Path
-
-Use:
-
-```text
-skills/workorai
-```
-
-## Required Metadata
-
-- Name: `workorai`
-- Display name: `WorkorAI`
-- Category: Job search, recruiting, MCP, productivity
-- Short description: `Use WorkorAI talent marketplace MCP tools for candidate and employer workflows.`
-- License: MIT
-- Runtime dependencies: Node.js 18+ only for helper scripts and installer
-- External service: WorkorAI MCP at `https://workorai.com/mcp`
+- Repository: `https://github.com/work0r-ai/agent-kit`
+- Canonical skill path: `skills/workorai`
+- npm package: `@workorai/agent-kit`
+- Install: `npx @workorai/agent-kit install`
+- MCP endpoint: `https://workorai.com/mcp` (streamable HTTP)
+- License: MIT (root `LICENSE` + per-skill `skills/workorai/LICENSE.txt`)
 - Auth model: optional WorkorAI MCP key, stored only after explicit user consent
 
-## Submit To
+## Tier 0 — Automatic (ship a clean public repo, done)
 
-- GitHub repository discovery: publish public repo with topics from `package.json` keywords.
-- npm: publish `@workorai/agent-kit`.
-- OpenAI/Codex skill catalogs: submit `skills/workorai`, including `agents/openai.yaml`.
-- Claude Code/Agent Skills catalogs: submit the same `skills/workorai` folder.
-- OpenCode skill directories: submit the same `skills/workorai` folder.
-- Cursor-compatible directories: submit the GitHub repository URL and canonical skill path.
-- Qwen Code-compatible directories: submit the GitHub repository URL and canonical skill path.
-- Antigravity-compatible directories: submit the GitHub repository URL and canonical skill path.
-- Deep Code / DeepSeek-compatible directories: submit the GitHub repository URL and canonical skill path.
-- skills.re: submit the GitHub repository URL; the registry expects a root `skills/` folder.
-- Cursor/Windsurf-compatible skill directories: submit the GitHub repository URL and canonical skill path when they support the common `SKILL.md` folder convention.
-- Any OpenClaw-compatible marketplace: submit the GitHub repository URL and canonical skill path.
-- Awesome lists and discovery indexes: see `registry/awesome-lists.md`.
+These crawl public GitHub; no submission step exists.
+
+- **skills.sh** (Vercel, `npx skills` CLI, agents search it autonomously):
+  indexes any public repo with `skills/*/SKILL.md`. Installable immediately
+  via `npx skills add work0r-ai/agent-kit`. Ranking driven by install
+  telemetry.
+- **SkillsMP.com**: auto-crawls public SKILL.md files (needs >= 2 GitHub
+  stars to be included).
+- **Glama.ai**: auto-crawls; after it appears, claim the listing at
+  `glama.ai` to control the description.
+- **crossaitools.com**, **LobeHub Skill Store**: crawl-based, ranking by
+  installs/stars/votes.
+
+Prerequisite for all of the above: GitHub repository topics set (see
+`package.json` keywords; apply with
+`gh api repos/work0r-ai/agent-kit/topics -X PUT -f "names[]=..."`).
+
+## Tier 1 — Official directories (highest leverage)
+
+### Anthropic Claude Code plugin directory
+
+Built into every Claude Code install (`claude.com/plugins`,
+`claude-plugins-community`).
+
+1. Manifests: `.claude-plugin/plugin.json` + `.mcp.json` (present).
+2. Run `claude plugin validate .` — must pass (warnings tolerated).
+3. Submit at `platform.claude.com/plugins/submit` (Console account of the
+   plugin author). Approved plugins are pinned to a commit SHA; the catalog
+   syncs nightly, so expect lag after approval.
+4. Until approval, users can install directly:
+   `claude plugin marketplace add work0r-ai/agent-kit` then
+   `claude plugin install workorai@workorai`.
+
+### Official MCP Registry (`registry.modelcontextprotocol.io`)
+
+Feeds PulseMCP, mcp.so, and other downstream directories automatically.
+
+1. `registry/server.json` is prepared (namespace
+   `io.github.work0r-ai/workorai`, remote streamable-http endpoint).
+2. Install publisher CLI: `brew install mcp-publisher` (or the release
+   binary from `github.com/modelcontextprotocol/registry`).
+3. Copy `registry/server.json` to repo root as `server.json` (the CLI
+   expects it at cwd), bump `version` to match the release.
+4. `mcp-publisher login github` (device-code OAuth as a member of
+   `work0r-ai`) then `mcp-publisher publish`.
+
+## Tier 2 — Manual submissions
+
+- **PulseMCP**: form at `pulsemcp.com/submit` (also syncs from the official
+  registry, so Tier 1 may cover it automatically).
+- **mcp.so**: open a GitHub issue via the Submit button (name, one-line
+  description, features, connection info).
+- **Smithery**: `npm i -g @smithery/cli && smithery mcp publish
+  https://workorai.com/mcp`; claim the listing afterwards.
+- **awesome-claude-code** (`hesreallyhim/awesome-claude-code`): PR adding
+  the skill under the appropriate category, following the table format and
+  CONTRIBUTING.md.
+- **claude-code-templates** (`davila7/claude-code-templates`, aitmpl.com):
+  PR contributing the skill to the `components/` folder.
+- See `registry/awesome-lists.md` for the long tail of awesome lists.
 
 ## Pre-Submission Checks
 
 ```bash
-npm run validate
-npm run smoke
+node scripts/validate.mjs
+node scripts/smoke-install.mjs
 npm pack --dry-run
+claude plugin validate .
 ```
 
 Confirm:
 
-- `skills/workorai/SKILL.md` has valid YAML frontmatter.
+- `skills/workorai/SKILL.md` frontmatter parses as strict YAML (the
+  description is a quoted scalar — keep it quoted when editing).
 - Frontmatter `name` is lowercase hyphen-case and under 64 characters.
 - Frontmatter `description` is clear, trigger-rich, and under 1024 characters.
+- `.claude-plugin/plugin.json` version matches `package.json` and
+  `registry/skill-metadata.json`.
 - `agents/openai.yaml` matches the skill behavior.
-- No secrets appear in docs or tests.
-- npm package tarball includes `skills/`, not an obsolete `templates/` source.
-- `skills/workorai/LICENSE.txt` is present for registries that require per-skill licensing.
+- No secrets appear in docs or tests; keys always redacted as `wai_[REDACTED]`.
+- npm package tarball includes `skills/` and `registry/`.
+- `skills/workorai/LICENSE.txt` is present for registries that require
+  per-skill licensing.
+- Git tag exists for the released version and GitHub release is published
+  (several hubs read releases, not package feeds).
 
 ## Submission Description
 
 Use this text when a hub asks for a longer description:
 
 ```text
-WorkorAI is an Agent Skill for talent marketplace workflows through WorkorAI MCP. It supports both sides of the marketplace under one skill: candidates ask natural job-search prompts ("найди мне работу", "find me a job") and the skill guides them through candidate tools, profile onboarding, and MCP key setup; employers ask hiring prompts ("hire developers", "find candidates", "post a job") and the skill walks through the 18-tool employer MCP surface (job lifecycle, candidate discovery, invitations, applicants review). Credential storage is role-aware (--role=candidate|employer), so a dual-role user keeps both keys. The repository also includes a zero-dependency npm installer for Codex, Claude Code, OpenCode, Cursor, Qwen Code, Antigravity, Deep Code, OpenClaw-compatible clients, and generic Agent Skills runtimes.
+WorkorAI is an Agent Skill for talent marketplace workflows through WorkorAI MCP. It supports both sides of the marketplace under one skill: candidates ask natural job-search prompts ("найди мне работу", "find me a job") and the skill guides them through candidate tools, profile onboarding, and MCP key setup; employers ask hiring prompts ("hire developers", "find candidates", "post a job") and the skill walks through the employer MCP surface (job lifecycle, tiered candidate discovery with white-box match explanations, invitations, applicants review). Credential storage is role-aware (--role=candidate|employer), so a dual-role user keeps both keys. The repository also includes a zero-dependency npm installer for Codex, Claude Code, OpenCode, Cursor, Qwen Code, Antigravity, Deep Code, OpenClaw-compatible clients, and generic Agent Skills runtimes.
 ```

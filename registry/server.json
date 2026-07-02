@@ -1,0 +1,16 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.work0r-ai/workorai",
+  "description": "WorkorAI talent marketplace MCP server: candidate job search and applications plus employer job lifecycle, ranked candidate discovery with white-box match explanations, invitations, and applicant review.",
+  "repository": {
+    "url": "https://github.com/work0r-ai/agent-kit",
+    "source": "github"
+  },
+  "version": "0.4.3",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://workorai.com/mcp"
+    }
+  ]
+}

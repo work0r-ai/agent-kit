@@ -1,21 +1,28 @@
 # Awesome Lists and Discovery Indexes
 
-Submit after the GitHub repository and npm `0.3.0` release are public.
+Landscape verified July 2026. Tier-0/1/2 hubs live in
+`registry/submission-checklist.md`; this file tracks the curated-list
+long tail.
 
-## Primary Targets
+## Primary Targets (PR-based, high traffic)
 
+- `hesreallyhim/awesome-claude-code` (47K+ stars) - PR to the README
+  following the existing table/category format; check CONTRIBUTING.md.
+- `davila7/claude-code-templates` (28K+ stars, aitmpl.com) - PR
+  contributing the skill to the `components/` folder, installable via
+  `npx claude-code-templates`.
 - `VoltAgent/awesome-agent-skills` - curated cross-agent skills list.
-- `ComposioHQ/awesome-codex-skills` - Codex-focused awesome list, if external submissions are accepted.
-- `agent-skills.md` - public search/discovery index for Agent Skills.
-- GitHub Topics - add repository topics for direct discovery.
+- GitHub Topics - applied on the repository; feeds SkillsMP, Glama,
+  crossaitools, LobeHub crawlers automatically.
 
 ## Secondary Targets
 
+- `ComposioHQ/awesome-codex-skills` - Codex-focused awesome list, if
+  external submissions are accepted.
 - `sickn33/antigravity-awesome-skills`
-- SkillsGate / skills.sh ecosystem
-- skillmarketplace.ai
-- skillsmk.com
-- Agensi
+- claude-plugins.dev - community CLI/registry; submission process
+  undocumented, check their GitHub/Discord.
+- Agensi (agensi.io)
 - skill.broker, if a commercial listing is desired later.
 
 ## Suggested Listing Copy
