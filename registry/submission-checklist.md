@@ -70,9 +70,12 @@ Feeds PulseMCP, mcp.so, and other downstream directories automatically.
   description, features, connection info).
 - **Smithery**: `npm i -g @smithery/cli && smithery mcp publish
   https://workorai.com/mcp`; claim the listing afterwards.
-- **awesome-claude-code** (`hesreallyhim/awesome-claude-code`): PR adding
-  the skill under the appropriate category, following the table format and
-  CONTRIBUTING.md.
+- **awesome-claude-code** (`hesreallyhim/awesome-claude-code`): PRs are
+  forbidden — submissions go through the "Recommend New Resource" web UI
+  issue form only (programmatic/gh submissions risk a ban). As of
+  2026-07-02 issue creation is restricted to collaborators (temporary
+  interaction limit) — retry the prefilled form URL after a few days;
+  fallback: a thread in the repo's Discussions tab.
 - **claude-code-templates** (`davila7/claude-code-templates`, aitmpl.com):
   PR contributing the skill to the `components/` folder.
 - See `registry/awesome-lists.md` for the long tail of awesome lists.
