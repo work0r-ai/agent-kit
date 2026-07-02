@@ -42,9 +42,12 @@ Built into every Claude Code install (`claude.com/plugins`,
 
 1. Manifests: `.claude-plugin/plugin.json` + `.mcp.json` (present).
 2. Run `claude plugin validate .` — must pass (warnings tolerated).
-3. Submit at `platform.claude.com/plugins/submit` (Console account of the
-   plugin author). Approved plugins are pinned to a commit SHA; the catalog
-   syncs nightly, so expect lag after approval.
+3. Submit at `https://clau.de/plugin-directory-submission` (claude.ai
+   account; NOT the platform.claude.com Console — that leads to API
+   billing). PRs against anthropics/claude-plugins-community are closed
+   automatically; everything flows through this form. Approved plugins
+   are pinned to a commit SHA; the catalog syncs nightly, so expect lag
+   after approval.
 4. Until approval, users can install directly:
    `claude plugin marketplace add work0r-ai/agent-kit` then
    `claude plugin install workorai@workorai`.
