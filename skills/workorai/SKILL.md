@@ -1,5 +1,6 @@
 ---
 name: workorai
+disable-model-invocation: false
 description: 'Use for WorkorAI talent marketplace requests. Candidate triggers: "найди мне работу", "ищу работу", "подбери вакансию", "find me a job", "I need work", "help me get hired". Employer triggers: hiring, posting jobs, finding/evaluating/comparing candidates, "who''s the best fit", explaining why a candidate matches, recruiting, MCP setup. Covers 9 candidate.* tools (search/detail/applications/apply/invites/saved) and 19 employer.* tools: job lifecycle; candidate discovery with TIERED ranking (best/good/weak) + a white-box matchExplanation per candidate (fit score, skills PROVEN in interview, gaps, quotable rationale); per-candidate interview EVIDENCE (facts + Q&A) for your own comparative review; invitations; applicants review; MCP onboarding. The agent ranks, explains, and evaluates candidates on white-box data, not a black-box score.'
 ---
 

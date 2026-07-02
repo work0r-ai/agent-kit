@@ -77,6 +77,26 @@ Feeds PulseMCP, mcp.so, and other downstream directories automatically.
   PR contributing the skill to the `components/` folder.
 - See `registry/awesome-lists.md` for the long tail of awesome lists.
 
+## OpenClaw (Clawbot) and Hermes reach
+
+- **ClawHub** (`clawhub.ai`) — OpenClaw's canonical skill registry:
+  `npm i -g clawhub`, `clawhub login` (GitHub OAuth), then
+  `clawhub skill publish skills/workorai --slug workorai --version <ver>`.
+  Post-ClawHavoc (Feb 2026) every publish passes an automated security
+  scan before the listing goes public; the frontmatter carries an
+  explicit `disable-model-invocation` flag (set to `false` here — the
+  skill is meant to auto-trigger). Direct git install works without the
+  registry: `openclaw skills install git:work0r-ai/agent-kit`.
+- **Hermes (Nous Research)** — no first-party registry. Three channels:
+  1. **Agensi** (`agensi.io`): "Submit a Skill" dashboard — zip of
+     `skills/workorai` with SKILL.md, tags, free listing.
+  2. **Hermes Atlas** (`hermesatlas.com`): community crawler of public
+     GitHub repos — no submission, picked up as the repo gains traction.
+  3. **PR to `nousresearch/hermes-agent`** `optional-mcps/` — Nous-vetted
+     MCP catalog, installs via `hermes mcp install workorai`.
+  Hermes imports OpenClaw skills directly (same agentskills.io SKILL.md
+  format), so the ClawHub listing also serves Hermes users.
+
 ## Pre-Submission Checks
 
 ```bash

@@ -2,6 +2,25 @@
 
 All notable changes to `@workorai/agent-kit` are documented here.
 
+## 0.4.3 - 2026-07-02
+
+- Hub publication release. The repository is now an installable Claude Code
+  plugin: `.claude-plugin/plugin.json` (plugin identity),
+  `.claude-plugin/marketplace.json` (direct
+  `claude plugin marketplace add work0r-ai/agent-kit` support), and `.mcp.json`
+  bundling the WorkorAI MCP server with the plugin.
+- Fixed `skills/workorai/SKILL.md` frontmatter: the description contained
+  unquoted `: ` sequences, so strict YAML parsers rejected it and tolerant
+  runtimes silently loaded the skill with empty metadata. The description is
+  now a quoted scalar.
+- Fixed repository metadata: `package.json` and registry docs pointed at the
+  nonexistent `github.com/workorai/agent-kit`; all URLs now reference the real
+  `github.com/work0r-ai/agent-kit`. Added the `author` field.
+- Registry docs rebuilt around the verified 2026 hub landscape
+  (`registry/submission-checklist.md`), plus `registry/server.json` prepared
+  for the official MCP Registry (`io.github.work0r-ai/workorai`).
+- No tool, schema, or runtime behavior change; fully back-compatible.
+
 ## 0.4.2 - 2026-06-17
 
 - Candidate first-touch: warmer, value-first onboarding. `auth-flow.md`
