@@ -28,7 +28,7 @@ long tail.
 ## Suggested Listing Copy
 
 ```text
-WorkorAI - Talent marketplace Agent Skill for WorkorAI MCP. Covers both candidate (job matching, onboarding, MCP key setup) and employer (job lifecycle, candidate discovery, invitations, applicants review - 18 tools) workflows under a single skill. Includes a zero-dependency npm installer for Codex, Claude Code, OpenCode, Cursor, Qwen Code, Antigravity, Deep Code, OpenClaw-compatible clients, and generic Agent Skills runtimes.
+WorkorAI - Talent marketplace Agent Skill for WorkorAI MCP. Covers both candidate (job matching, onboarding, MCP key setup) and employer (job lifecycle, candidate discovery, invitations, applicants review - 19 tools) workflows under a single skill. Includes a zero-dependency npm installer for Codex, Claude Code, OpenCode, Cursor, Qwen Code, Antigravity, Deep Code, OpenClaw-compatible clients, and generic Agent Skills runtimes.
 ```
 
 ## Canonical Links

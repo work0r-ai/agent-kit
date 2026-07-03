@@ -9,7 +9,7 @@ WorkorAI Agent Kit packages the `workorai` Agent Skill and a zero-dependency ins
 It supports both sides of the marketplace through one skill:
 
 - **Candidates** ask prompts like `найди мне работу`, `find me a job`, or `help me get hired`; the skill guides them through onboarding, MCP key setup, and the candidate match tools.
-- **Employers** ask prompts like `найди кандидатов`, `hire developers`, `post a job`, or `review applicants`; the skill walks through the 18-tool employer MCP surface (job lifecycle, candidate discovery, invitations, applicants review).
+- **Employers** ask prompts like `найди кандидатов`, `hire developers`, `post a job`, or `review applicants`; the skill walks through the 19-tool employer MCP surface (job lifecycle, candidate discovery, invitations, applicants review).
 
 Both roles share one skill name (`workorai`) and one credential helper, with role-aware storage slots so a dual-role user can keep both keys.
 
@@ -60,7 +60,7 @@ find me a job
   - `candidate-catalog.md` - candidate tool mini-schemas
   - `candidate-recipes.md` - candidate calling-order recipes (incl. the Agent Pick result presentation)
   - `candidate-troubleshooting.md` - candidate-side error scenarios
-  - `employer-catalog.md` - 18 employer tool mini-schemas
+  - `employer-catalog.md` - 19 employer tool mini-schemas
   - `employer-recipes.md` - hire / review / lifecycle recipes
   - `employer-troubleshooting.md` - employer-side error scenarios
   - `auth-flow.md` - candidate and employer onboarding + saved-key flow
@@ -171,7 +171,7 @@ When the user asks to hire, post jobs, or review candidates, the skill guides th
 4. Paste the key into the agent session for immediate `employer.*` tool use.
 5. Save with `--role=employer` for future hiring searches.
 
-The 18 employer tools cover the full hire-to-review lifecycle. See `skills/workorai/references/employer-catalog.md` for the mini-schemas and `skills/workorai/references/employer-recipes.md` for the four calling-order recipes (hire from a specific job, free-form hire, funnel review, pending-invites cleanup) plus the job lifecycle (create → publish → close → archive).
+The 19 employer tools cover the full hire-to-review lifecycle. See `skills/workorai/references/employer-catalog.md` for the mini-schemas and `skills/workorai/references/employer-recipes.md` for the four calling-order recipes (hire from a specific job, free-form hire, funnel review, pending-invites cleanup) plus the job lifecycle (create → publish → close → archive).
 
 ## Development
 
