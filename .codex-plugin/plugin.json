@@ -1,0 +1,37 @@
+{
+  "name": "workorai",
+  "version": "0.4.3",
+  "description": "WorkorAI talent marketplace skill and MCP server: candidates search and apply to jobs, employers run the job lifecycle and discover ranked candidates with white-box match explanations.",
+  "author": {
+    "name": "WorkorAI",
+    "url": "https://workorai.com"
+  },
+  "homepage": "https://workorai.com",
+  "repository": "https://github.com/work0r-ai/agent-kit",
+  "license": "MIT",
+  "keywords": [
+    "job-search",
+    "hiring",
+    "recruiting",
+    "talent-marketplace",
+    "candidate-matching",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "WorkorAI",
+    "shortDescription": "Job search for candidates and ranked candidate discovery for employers",
+    "longDescription": "WorkorAI talent marketplace workflows through one skill: candidates search jobs, review explained matches, and apply directly from the agent; employers post and manage jobs, discover tiered candidates with white-box match explanations (fit score, interview-proven skills, gaps), send invitations, and review applicants. Credentials are role-aware and stored only with explicit consent.",
+    "developerName": "WorkorAI",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://workorai.com",
+    "defaultPrompt": "Find me a job, or post a job and find the top matching candidates",
+    "brandColor": "#0F766E"
+  }
+}

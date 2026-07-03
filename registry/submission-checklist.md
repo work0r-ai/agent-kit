@@ -52,6 +52,19 @@ Built into every Claude Code install (`claude.com/plugins`,
    `claude plugin marketplace add work0r-ai/agent-kit` then
    `claude plugin install workorai@workorai`.
 
+### OpenAI Codex Plugin Directory (waiting for self-serve publishing)
+
+The in-app Plugin Directory (Codex App / CLI `/plugins`) is OpenAI-curated
+only as of July 2026; the docs say third-party submission and self-serve
+publishing are "coming soon". Prepared in advance:
+
+- `.codex-plugin/plugin.json` (manifest matching the openai/plugins
+  reference schema) + shared `.mcp.json` + `skills/workorai`.
+- When self-serve opens (watch developers.openai.com/codex/plugins/build),
+  submit this repo. Until then Codex users install via
+  `$skill-installer work0r-ai/agent-kit/workorai`, `npx @workorai/agent-kit
+  install --agent codex`, or skills.sh.
+
 ### Official MCP Registry (`registry.modelcontextprotocol.io`)
 
 Feeds PulseMCP, mcp.so, and other downstream directories automatically.
