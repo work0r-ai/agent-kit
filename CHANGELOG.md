@@ -2,6 +2,23 @@
 
 All notable changes to `@workorai/agent-kit` are documented here.
 
+## 0.4.4 - 2026-07-03
+
+- Skill safety hardening. `SKILL.md` gains a "Confirmation & Safety" section
+  that (a) states auto-activation only ever runs read/discovery calls and
+  never mutates state on its own, (b) requires an explicit per-action
+  confirmation before every consequential candidate/employer mutation
+  (apply, withdraw, accept/decline, saved-job, and the full employer job
+  lifecycle + invitations + review-status), one confirmation per call, and
+  (c) surfaces two disclosures: the `--best-effort` key save may leave a
+  local `0600` file fallback, and every evaluated candidate is discoverable
+  to employers with no per-search opt-out. This addresses the ClawHub scan
+  findings (broad implicit activation, missing per-action confirmation,
+  privacy disclosure) directly in the skill contract.
+- Docs/skill-copy only — no tool, schema, or runtime change; fully
+  back-compatible. Published to ClawHub; other registries follow on their
+  next publish.
+
 ## 0.4.3 - 2026-07-02
 
 - Hub publication release. The repository is now an installable Claude Code

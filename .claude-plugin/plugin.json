@@ -2,7 +2,7 @@
   "name": "workorai",
   "displayName": "WorkorAI",
   "description": "WorkorAI talent marketplace skill and MCP server: candidates search and apply to jobs, employers post jobs and discover ranked candidates with white-box match explanations.",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "author": {
     "name": "WorkorAI",
     "url": "https://workorai.com"

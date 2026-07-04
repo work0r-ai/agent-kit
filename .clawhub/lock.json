@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "@m14mgn-hash/workorai": {
+      "version": "0.4.3",
+      "installedAt": 1783138584785,
+      "ownerHandle": "m14mgn-hash"
+    }
+  }
+}

@@ -6,7 +6,7 @@
     "url": "https://github.com/work0r-ai/agent-kit",
     "source": "github"
   },
-  "version": "0.4.3",
+  "version": "0.4.4",
   "remotes": [
     {
       "type": "streamable-http",
